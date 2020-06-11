@@ -85,6 +85,8 @@ RUN pip3 install torch-1.1.0-cp36-cp36m-linux_aarch64.whl
 # Install the mosquito business
 RUN pip3 install paho-mqtt
 
+RUN pip3 install attrs==19.1.0
+
 # Change working directory
 WORKDIR /
 

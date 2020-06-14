@@ -26,10 +26,10 @@ RUN rm -f /tmp/*.deb
 # Get pip
 RUN apt install -y software-properties-common \
   && apt install -y ffmpeg \
-  && apt-get install -y llvm-7 llvm-7
+  && apt-get install -y llvm-9 llvm-9
 RUN apt-get install -y libhdf5-serial-dev  
 
-ENV LLVM_CONFIG /usr/bin/llvm-config-7
+ENV LLVM_CONFIG /usr/bin/llvm-config-9
 
 # Install PIP and numpy and cython
 RUN pip3 install --upgrade pip \
@@ -40,7 +40,7 @@ RUN apt-get install -y build-essential gfortran libatlas-base-dev libfreetype6-d
 RUN apt-get update
 RUN pip3 uninstall -y enum34
 RUN pip3 install -U pesq==0.0.1 pystoi==0.2.2 scipy==1.3.0 
-RUN pip3 install llvmlite
+RUN pip3 install llvmlite==0.33.0
 
 RUN pip3 install --ignore-installed joblib
 RUN apt remove -y libtbb-dev

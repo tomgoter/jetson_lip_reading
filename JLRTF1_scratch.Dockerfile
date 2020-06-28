@@ -146,13 +146,16 @@ RUN pip3 install tqdm \
 #RUN pip3 install gpumap 
 
 # Torch only used for face detection during preprocessing. May not need for inference.
-#RUN wget https://nvidia.box.com/shared/static/mmu3xb3sp4o8qg9tji90kkxl1eijjfc6.whl -O torch-1.1.0-cp36-cp36m-linux_aarch64.whl
-#RUN pip3 install torch-1.1.0-cp36-cp36m-linux_aarch64.whl
+RUN wget https://nvidia.box.com/shared/static/mmu3xb3sp4o8qg9tji90kkxl1eijjfc6.whl -O torch-1.1.0-cp36-cp36m-linux_aarch64.whl
+RUN pip3 install torch-1.1.0-cp36-cp36m-linux_aarch64.whl
 
 # Install the mosquito business
 RUN pip3 install paho-mqtt
 
 RUN pip3 install attrs==19.1.0
+
+# Install profiler https://pypi.org/project/profilehooks/
+RUN pip3 install profilehooks
 
 # Change working directory
 WORKDIR /

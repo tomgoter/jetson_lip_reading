@@ -19,7 +19,7 @@ parser.add_argument("--interval_root", help="where to create the interval files"
 args = parser.parse_args()
 
 video_list = [vid for vid in os.listdir(args.video_root) if '.mov' == vid[-4:]]
-print(f'Total Number of Videos to Process {len(video_list)}')
+print("Total Number of Videos to Process {}".format(len(video_list)))
 
 # Template string to run ffmpeg over and over with
 template = 'ffmpeg -i {}/{} -c copy -segment_time 30 -f segment {}/{}/cut-%d.mov'

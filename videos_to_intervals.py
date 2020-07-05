@@ -27,6 +27,9 @@ template = 'ffmpeg -i {}/{} -c copy -segment_time 30 -f segment {}/{}/cut-%d.mov
 # Loop over videos and chunk
 for vid in tqdm(video_list):
   base_path = vid[:-4]
-  os.mkdir(os.join(args.interval_root, base_path))
-  os.system(template.format(args.video_root, vid, args.interval_root, base_path))
-  
+  if not os.path.isdir(os.path.join(args.interval_root, base_path)):  
+    os.mkdir(os.path.join(args.interval_root, base_path))
+    os.system(template.format(args.video_root, vid, args.interval_root, base_path))
+  else:
+    continue
+    

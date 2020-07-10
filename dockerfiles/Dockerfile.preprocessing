@@ -16,4 +16,11 @@ RUN pip install --upgrade pip
 RUN pip install Cython
 RUN pip install numba==0.48.0
 RUN pip uninstall -y enum34
-RUN pip install -r requirements.txt
+RUN sed '20,23d' requirements.txt > requirements_new.txt
+RUN pip install -r requirements_new.txt
+
+RUN pip install mtcnn
+
+WORKDIR /
+
+

@@ -7,7 +7,6 @@ import sys
 from os import listdir, path
 import multiprocessing as mp
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import argparse, os, cv2, traceback, subprocess
 from tqdm import tqdm
@@ -146,8 +145,9 @@ def process_audio_file(vfile, args, gpu_id):
 
 
 def mp_handler(job):
-    vfile, args, mtcnn, gpu_id = job
+    vfile, args, gpu_id = job
     try:
+        mtcnn = MTCNN(min_face_size=args.minsize)
         process_video_file(vfile, args, mtcnn, gpu_id)
         process_audio_file(vfile, args, gpu_id)
     except KeyboardInterrupt:
@@ -159,13 +159,13 @@ def main(args):
     print('Started processing for {} with {} GPUs'.format(args.speaker_root, args.ngpu))
 
     # Instantiate Tensor RT MT CNN Model
-    mtcnn = MTCNN(min_face_size=args.minsize)
+
     if args.speaker == 'tom':
         filelist = glob(path.join(args.speaker_root, 'intervals/*/*.mov'))
     else:
         filelist = glob(path.join(args.speaker_root, 'intervals/*/*.mp4'))
 
-    jobs = [(vfile, args, mtcnn, i%args.ngpu) for i, vfile in enumerate(filelist)]
+    jobs = [(vfile, args, i%args.ngpu) for i, vfile in enumerate(filelist)]
     p = ThreadPoolExecutor(args.ngpu)
 
     futures = [p.submit(mp_handler, j) for j in jobs]

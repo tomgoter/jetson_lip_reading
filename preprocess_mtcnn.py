@@ -27,7 +27,7 @@ if sys.version_info[0] < 3 and sys.version_info[1] < 2:
 
 # Parse out arguments for script
 parser = argparse.ArgumentParser()
-parser.add_argument('--ngpu', help='Number of GPUs across which to run in parallel', default=1, type=int)
+parser.add_argument('--ncpu', help='Number of CPUs across which to run in parallel', default=1, type=int)
 parser.add_argument('--batch_size', help='Single GPU Face detection batch size', default=16, type=int)
 parser.add_argument("--speaker_root", help="Root folder of Speaker", required=True)
 parser.add_argument("--resize_factor", help="Resize the frames before face detection", default=1, type=int)
@@ -59,7 +59,7 @@ def loop_and_detect(mtcnn, frames, directory):
 
     tic = time.time()
     start = tic
-    count = 0
+    toc = tic
 
     # List of Frames captured from video is sent in. Sequentially process this list.
     for f, frame in enumerate(frames):
@@ -145,18 +145,18 @@ def process_audio_file(vfile, args, gpu_id):
 
 
 def mp_handler(job):
-    vfile, args, gpu_id = job
+    vfile, args, id = job
     try:
         mtcnn = MTCNN(min_face_size=args.minsize)
-        process_video_file(vfile, args, mtcnn, gpu_id)
-        process_audio_file(vfile, args, gpu_id)
+        process_video_file(vfile, args, mtcnn, id)
+        process_audio_file(vfile, args, id)
     except KeyboardInterrupt:
         exit(0)
     except:
         traceback.print_exc()
 
 def main(args):
-    print('Started processing for {} with {} GPUs'.format(args.speaker_root, args.ngpu))
+    print('Started processing for {} with {} GPUs'.format(args.speaker_root, args.ncpu))
 
     # Instantiate Tensor RT MT CNN Model
 
@@ -165,8 +165,8 @@ def main(args):
     else:
         filelist = glob(path.join(args.speaker_root, 'intervals/*/*.mp4'))
 
-    jobs = [(vfile, args, i%args.ngpu) for i, vfile in enumerate(filelist)]
-    p = ProcessPoolExecutor(args.ngpu)
+    jobs = [(vfile, args, i%args.ncpu) for i, vfile in enumerate(filelist)]
+    p = ProcessPoolExecutor(args.ncpu)
 
     futures = [p.submit(mp_handler, j) for j in jobs]
     _ = [r.result() for r in tqdm(as_completed(futures), total=len(futures))]

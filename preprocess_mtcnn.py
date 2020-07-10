@@ -166,10 +166,9 @@ def main(args):
         filelist = glob(path.join(args.speaker_root, 'intervals/*/*.mp4'))
 
     jobs = [(vfile, args, mtcnn, i%args.ngpu) for i, vfile in enumerate(filelist)]
-    #p = ThreadPoolExecutor(args.ngpu)
-    with ProcessPoolExecutor(max_workers=args.ngpu) as executor:
-        futures = [executor.submit(mp_handler, j) for j in jobs]
+    p = ThreadPoolExecutor(args.ngpu)
 
+    futures = [p.submit(mp_handler, j) for j in jobs]
     _ = [r.result() for r in tqdm(as_completed(futures), total=len(futures))]
 
 if __name__ == '__main__':

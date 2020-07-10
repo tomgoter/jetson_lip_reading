@@ -7,6 +7,7 @@ import sys
 from os import listdir, path
 import multiprocessing as mp
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import argparse, os, cv2, traceback, subprocess
 from tqdm import tqdm
@@ -82,7 +83,7 @@ def loop_and_detect(mtcnn, frames, directory):
             toc = time.time()
     # print the average FPS after processing all frames
     print(f'Processed {len(frames)} faces in {toc-start} seconds - {len(frames)/(toc-start)} FPS')
-            
+
 
 # Preprocesses a video file specified by the file name vfile
 # Preprocessing includes extracting the audio of the video to generate an audio file (audio.wav)
@@ -122,8 +123,8 @@ def process_video_file(vfile, args, mtcnn, gpu_id):
 
     # Process frames sequentially
     loop_and_detect(mtcnn, frames, fulldir)
-    
-    
+
+
 
 # Preprocess the audio file extracted in process_video_file
 # Generates a single file containing the melspectrogram and linearspectrogram for the audio segment
@@ -143,7 +144,7 @@ def process_audio_file(vfile, args, gpu_id):
     specpath = path.join(fulldir, 'mels.npz')
     np.savez_compressed(specpath, spec=spec, lspec=lspec)
 
-    
+
 def mp_handler(job):
     vfile, args, mtcnn, gpu_id = job
     try:
@@ -153,7 +154,7 @@ def mp_handler(job):
         exit(0)
     except:
         traceback.print_exc()
-        
+
 def main(args):
     print('Started processing for {} with {} GPUs'.format(args.speaker_root, args.ngpu))
 
@@ -165,9 +166,10 @@ def main(args):
         filelist = glob(path.join(args.speaker_root, 'intervals/*/*.mp4'))
 
     jobs = [(vfile, args, mtcnn, i%args.ngpu) for i, vfile in enumerate(filelist)]
-    p = ThreadPoolExecutor(args.ngpu)
+    #p = ThreadPoolExecutor(args.ngpu)
+    with ProcessPoolExecutor(max_workers=args.ngpu) as executor:
+        futures = [executor.submit(mp_handler, j) for j in jobs]
 
-    futures = [p.submit(mp_handler, j) for j in jobs]
     _ = [r.result() for r in tqdm(as_completed(futures), total=len(futures))]
 
 if __name__ == '__main__':

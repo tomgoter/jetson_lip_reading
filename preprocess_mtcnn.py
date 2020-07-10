@@ -6,7 +6,7 @@
 import sys
 from os import listdir, path
 import multiprocessing as mp
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 import numpy as np
 import argparse, os, cv2, traceback, subprocess
 from tqdm import tqdm
@@ -166,7 +166,7 @@ def main(args):
         filelist = glob(path.join(args.speaker_root, 'intervals/*/*.mp4'))
 
     jobs = [(vfile, args, i%args.ngpu) for i, vfile in enumerate(filelist)]
-    p = ThreadPoolExecutor(args.ngpu)
+    p = ProcessPoolExecutor(args.ngpu)
 
     futures = [p.submit(mp_handler, j) for j in jobs]
     _ = [r.result() for r in tqdm(as_completed(futures), total=len(futures))]

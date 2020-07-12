@@ -18,13 +18,3 @@ RUN pip install numba==0.48.0
 RUN pip uninstall -y enum34
 RUN pip install -r requirements.txt
 
-RUN curl -o nv-tensorrt-repo-ubuntu1804-cuda10.2-trt7.1.3.4-ga-20200617_1-1_amd64.deb https://developer.nvidia.com/compute/machine-learning/tensorrt/secure/7.1/local_repo/nv-tensorrt-repo-ubuntu1804-cuda10.2-trt7.1.3.4-ga-20200617_1-1_amd64.deb
-RUN dpkg -i nv-tensorrt-repo-ubuntu1804-cuda10.2-trt7.1.3.4-ga-20200617_1-1_amd64.deb
-RUN apt-key add /var/nv-tensorrt-repo-cuda10.2-trt7.1.3.4-ga-20200617/7fa2af80.pub
-RUN apt-get update
-RUN apt-get install tensorrt cuda-nvrtc-10-2 libnvinfer7
-RUN apt-get install python3-libnvinfer-dev
-RUN apt-get install uff-converter-tf 
-RUN apt-get install libnvonnxparsers7 libnvparsers7 libnvinfer-plugin7
-RUN apt-get install libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev libnvinfer-plugin-dev
-RUN apt-get install python-libnvinfer python3-libnvinfer

@@ -31,7 +31,7 @@ parser.add_argument('--ncpu', help='Number of CPUs across which to run in parall
 parser.add_argument('--batch_size', help='Single GPU Face detection batch size', default=16, type=int)
 parser.add_argument("--speaker_root", help="Root folder of Speaker", required=True)
 parser.add_argument("--resize_factor", help="Resize the frames before face detection", default=1, type=int)
-parser.add_argument("--speaker", help="Helps in preprocessing", required=True, choices=["chem", "chess", "hs", "dl", "eh"])
+parser.add_argument("--speaker", help="Helps in preprocessing", required=True, choices=["chem", "chess", "hs", "dl", "eh", "tom"])
 parser.add_argument("--minsize", help="Minimum size of face to look for. Higher means less processing.",  default=140, type=int)
 args = parser.parse_args()
 
@@ -156,7 +156,7 @@ def mp_handler(job):
         traceback.print_exc()
 
 def main(args):
-    print('Started processing for {} with {} GPUs'.format(args.speaker_root, args.ncpu))
+    print('Started processing for {} with {} CPUs'.format(args.speaker_root, args.ncpu))
 
     # Instantiate Tensor RT MT CNN Model
 

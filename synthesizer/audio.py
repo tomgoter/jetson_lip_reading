@@ -83,13 +83,13 @@ def inv_linear_spectrogram(linear_spectrogram, hparams):
 
 def inv_mel_spectrogram(mel_spectrogram, hparams):
     """Converts mel spectrogram to waveform using librosa"""
+    #print(f"Shape of Mel spectrogram is {mel_spectrogram.shape}")
     if hparams.signal_normalization:
         D = _denormalize(mel_spectrogram, hparams)
     else:
         D = mel_spectrogram
-    
     S = _mel_to_linear(_db_to_amp(D + hparams.ref_level_db), hparams)  # Convert back to linear
-    
+    #print(f"Shape of linear spectrogram is {S.shape}")
     if hparams.use_lws:
         processor = _lws_processor(hparams)
         D = processor.run_lws(S.astype(np.float64).T ** hparams.power)
@@ -97,6 +97,31 @@ def inv_mel_spectrogram(mel_spectrogram, hparams):
         return inv_preemphasis(y, hparams.preemphasis, hparams.preemphasize)
     else:
         return inv_preemphasis(_griffin_lim(S ** hparams.power, hparams), hparams.preemphasis, hparams.preemphasize)
+
+def inv_mel_spectrogram_tensorflow(mel_spectrogram, hparams):
+    '''Builds computational graph to convert spectrogram to waveform using TensorFlow.
+    Unlike inv_spectrogram, this does NOT invert the preemphasis. The caller should call
+    inv_preemphasis on the output after running the graph.
+    '''
+    
+    if hparams.signal_normalization:
+        D = _denormalize_tensorflow(mel_spectrogram, hparams)
+    else:
+        D = mel_spectrogram
+    
+    S = _mel_to_linear_tensorflow(_db_to_amp_tensorflow(D+ hparams.ref_level_db), hparams)
+    
+    
+    if hparams.use_lws:
+        processor = _lws_processor(hparams)
+        D = processor.run_lws(S.astype(np.float64).T ** hparams.power)
+        y = processor.istft(D).astype(np.float32)
+        return inv_preemphasis(y, hparams.preemphasis, hparams.preemphasize)
+    else:
+        # Need to invert the pre-emphasis after the graph runs
+        return _griffin_lim_tensorflow(S ** hparams.power, hparams)
+
+    
 
 def _lws_processor(hparams):
     import lws
@@ -107,12 +132,33 @@ def _griffin_lim(S, hparams):
     Based on https://github.com/librosa/librosa/issues/434
     """
     angles = np.exp(2j * np.pi * np.random.rand(*S.shape))
+    #print(f"Shape of angles is {angles.shape}")
     S_complex = np.abs(S).astype(np.complex)
+    #print(f"Shape of linear spectrogram complex is {S_complex.shape}")
     y = _istft(S_complex * angles, hparams)
+    #print(f"Shape of y is {y.shape}")
     for i in range(hparams.griffin_lim_iters):
         angles = np.exp(1j * np.angle(_stft(y, hparams)))
         y = _istft(S_complex * angles, hparams)
+    #print(f"Shape of waveform  is {y.shape}")
     return y
+
+def _griffin_lim_tensorflow(S, hparams):
+  '''TensorFlow implementation of Griffin-Lim
+  Based on https://github.com/Kyubyong/tensorflow-exercises/blob/master/Audio_Processing.ipynb
+  '''
+  with tf.variable_scope('griffinlim'):
+    # TensorFlow's stft and istft operate on a batch of spectrograms; create batch of size 1
+    S = tf.transpose(S)
+    S = tf.expand_dims(S, 0)
+    S_complex = tf.identity(tf.cast(S, dtype=tf.complex64))
+    y = _istft_tensorflow(S_complex, hparams)
+    
+    for i in range(hparams.griffin_lim_iters):
+      est = _stft_tensorflow(y, hparams)
+      angles = est / tf.cast(tf.maximum(1e-8, tf.abs(est)), tf.complex64)
+      y = _istft_tensorflow(S_complex * angles, hparams)
+    return tf.squeeze(y, 0)
 
 def _stft(y, hparams):
     if hparams.use_lws:
@@ -122,6 +168,23 @@ def _stft(y, hparams):
 
 def _istft(y, hparams):
     return librosa.istft(y, hop_length=get_hop_size(hparams), win_length=hparams.win_size)
+
+
+def _stft_tensorflow(signals, hparams):
+  #n_fft, hop_length, win_length = _stft_parameters()
+  return tf.contrib.signal.stft(signals, hparams.win_size, get_hop_size(hparams), hparams.n_fft, pad_end=False)
+
+
+def _istft_tensorflow(stfts, hparams):
+  #n_fft, hop_length, win_length = _stft_parameters()
+  return tf.contrib.signal.inverse_stft(stfts, hparams.win_size, get_hop_size(hparams), hparams.n_fft)
+
+# Commented out because L2W uses a different approach by passing hparams to _stft
+# def _stft_parameters():
+#   n_fft = (hparams.num_freq - 1) * 2
+#   hop_length = int(hparams.frame_shift_ms / 1000 * hparams.sample_rate)
+#   win_length = int(hparams.frame_length_ms / 1000 * hparams.sample_rate)
+#   return n_fft, hop_length, win_length
 
 ##########################################################
 #Those are only correct when using lws!!! (This was messing with Wavenet quality for a long time!)
@@ -163,12 +226,29 @@ def _mel_to_linear(mel_spectrogram, hparams):
     global _inv_mel_basis
     if _inv_mel_basis is None:
         _inv_mel_basis = np.linalg.pinv(_build_mel_basis(hparams))
+    #print(f"Shape of inverted mel basis is {_inv_mel_basis.shape}")
     return np.maximum(1e-10, np.dot(_inv_mel_basis, mel_spectrogram))
+
+def _mel_to_linear_tensorflow(mel_spectrogram, hparams):
+    global _inv_mel_basis
+    #if _inv_mel_basis is None:
+    _inv_mel_basis = tf.linalg.pinv(_build_mel_basis_tensorflow(hparams))
+    #print(mel_spectrogram)
+    #print(_inv_mel_basis)
+    mel_spectrogram= tf.reshape(mel_spectrogram, [80,240])   
+    x = tf.matmul(_inv_mel_basis, mel_spectrogram)
+    #print(tf.shape(x))
+    return tf.math.maximum(tf.ones(tf.shape(x)) * 1e-10, x)
 
 def _build_mel_basis(hparams):
     assert hparams.fmax <= hparams.sample_rate // 2
     return librosa.filters.mel(hparams.sample_rate, hparams.n_fft, n_mels=hparams.num_mels,
                                fmin=hparams.fmin, fmax=hparams.fmax)
+
+def _build_mel_basis_tensorflow(hparams):
+    assert hparams.fmax <= hparams.sample_rate // 2
+    return tf.convert_to_tensor(librosa.filters.mel(hparams.sample_rate, hparams.n_fft, n_mels=hparams.num_mels,
+                               fmin=hparams.fmin, fmax=hparams.fmax), tf.float32)
 
 def _amp_to_db(x, hparams):
     min_level = np.exp(hparams.min_level_db / 20 * np.log(10))
@@ -176,6 +256,9 @@ def _amp_to_db(x, hparams):
 
 def _db_to_amp(x):
     return np.power(10.0, (x) * 0.05)
+
+def _db_to_amp_tensorflow(x):
+  return tf.pow(tf.ones(tf.shape(x)) * 10.0, x * 0.05)
 
 def _normalize(S, hparams):
     if hparams.allow_clipping_in_normalization:
@@ -204,3 +287,18 @@ def _denormalize(D, hparams):
         return (((D + hparams.max_abs_value) * -hparams.min_level_db / (2 * hparams.max_abs_value)) + hparams.min_level_db)
     else:
         return ((D * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)
+
+def _denormalize_tensorflow(D, hparams):
+    if hparams.allow_clipping_in_normalization:
+        if hparams.symmetric_mels:
+            return (((tf.clip_by_value(D, -hparams.max_abs_value,
+                              hparams.max_abs_value) + hparams.max_abs_value) * -hparams.min_level_db / (2 * hparams.max_abs_value))
+                    + hparams.min_level_db)
+        else:
+            return ((tf.clip_by_value(D, 0, hparams.max_abs_value) * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)
+    
+    if hparams.symmetric_mels:
+        return (((D + hparams.max_abs_value) * -hparams.min_level_db / (2 * hparams.max_abs_value)) + hparams.min_level_db)
+    else:
+        return ((D * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)
+    

@@ -1,4 +1,5 @@
-from synthesizer.tacotron2 import Tacotron2
+from synthesizer.tacotron_tpg import Tacotron2
+#from synthesizer.tacotron2 import Tacotron2
 from synthesizer.hparams import hparams
 from multiprocess.pool import Pool  # You're free to use either one
 #from multiprocessing import Pool   # 
@@ -9,6 +10,7 @@ import tensorflow as tf
 import numpy as np
 import numba.cuda
 import librosa
+
 
 
 class Synthesizer:
@@ -58,7 +60,7 @@ class Synthesizer:
         """
         if self._low_mem:
             raise Exception("Cannot load the synthesizer permanently in low mem mode")
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph
         self._model = Tacotron2(None, hparams)
             
     def synthesize_spectrograms(self, faces, return_alignments=False):
@@ -75,9 +77,29 @@ class Synthesizer:
         """
         if not self.is_loaded():
             self.load()
+        
         specs, alignments = self._model.my_synthesize(faces)
         
         return (specs, alignments) if return_alignments else specs
+
+    def synthesize_spectrograms_tensorflow(self, faces, return_alignments=False):
+        """
+        Synthesizes mel spectrograms from texts and speaker embeddings.
+
+        :param texts: a list of N text prompts to be synthesized
+        :param embeddings: a numpy array or list of speaker embeddings of shape (N, 256) 
+        :param return_alignments: if True, a matrix representing the alignments between the 
+        characters
+        and each decoder output step will be returned for each spectrogram
+        :return: a list of N melspectrograms as numpy arrays of shape (80, Mi), where Mi is the 
+        sequence length of spectrogram i, and possibly the alignments.
+        """
+        if not self.is_loaded():
+            self.load()
+        
+        wav = self._model.my_synthesize(faces)
+        
+        return wav
 
     @staticmethod
     def _one_shot_synthesize_spectrograms(checkpoint_fpath, texts, embeddings):
@@ -122,10 +144,13 @@ class Synthesizer:
         return mel_spectrogram
     
     @staticmethod
-    def griffin_lim(mel):
+    def griffin_lim(mel, use_tf=True):
         """
         Inverts a mel spectrogram using Griffin-Lim. The mel spectrogram is expected to have been built
         with the same parameters present in hparams.py.
         """
-        return audio.inv_mel_spectrogram(mel, hparams)
+        if use_tf:
+            return audio.inv_preemphasis(audio.inv_mel_spectrogram_tensorflow(mel, hparams))
+        else:
+            return audio.inv_mel_spectrogram(mel, hparams)
     

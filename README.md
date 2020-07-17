@@ -105,9 +105,9 @@ python train.py <new_model_name> --data_root /jlrdata/ --preset synthesizer/pres
 `cp /data/saved_models/logs-<model_name>/tacotron_pretrained/tacotron*<step_number>* /jlrdata/<folder for model>`
 
 ### Inference on Jetson
-1. Download model from object store
-2. Download test data from object store (if not already present)
-3. Clone this respository
+1. Download model from object store and save to backup disk on jetson (i.e., '/data'): refer to the path to this model as <model_path>
+2. Download test data from object store (if not already present) and save to backup disk on jetson (i.e., '/data'). This should include the preprocessed folder and all of the subfolders for the videos listed in test.txt. Record the path to the root directory (directory which contains test.txt and preprocessed/) as <data_path>
+3. Clone this respository `git clone https://github.com/tomgoter/jetson_lip_reading.git`
 3. Create docker image for inference (if not already existing): 
 ```
 cd /path/to/jetson_lip_reading
@@ -117,4 +117,14 @@ docker build -t jlr -f dockerfiles/JLRTF1_scratch.Dockerfile .`
 ```
 docker run --rm --privileged -v /home/tom/w251/jetson_lip_reading:/jetson_lip_reading -v /data:/data -ti jlr bash
 ```
-5. 
+5. From with in the docker container, run the inference as:
+```
+python3 complete_test_generate_tpg.py -d <data_path> -r <output_path> --checkpoint <model_path> --preset synthesizer/presets/tom.json
+#
+Example for chemistry speaker: 
+python3 complete_test_generate_tpg.py \
+             -d /data/jlr_data/chem \
+             -r /data/jlr_data/chem \
+             --checkpoint /data/jlr_model/chem/tacotron_model.ckpt-159000 \
+             --preset synthesizer/presets/chem.json
+```

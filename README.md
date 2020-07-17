@@ -6,7 +6,7 @@
 
 
 
-#### Preparing GPU and Training Procedure for Personal Dataset
+### Preparing GPU and Training Procedure for Personal Dataset
 1. Requisition GPU from IBM Cloud Storage: For this step, we load from image a VS instance on a V100 GPU. This is done through the IBM Cloud Portal. Once recquisitioned we log on through our jump node with the following command: `ssh root@public.ip.address.of.vsi`
 2. Harden the VSI: Modify security configuration to prohibit password login to root on our instance. 
 - This is done by modifying the /etc/ssh/sshd_config file (using vi) in the following manner:
@@ -101,3 +101,20 @@ python train.py <new_model_name> --data_root /jlrdata/ --preset synthesizer/pres
 - Jump into the docker container with `docker exec -ti jlrapp /bin/bash`
 - Run tensorboard `tensorboard --logdir=/data/saved_models/logs-<model_name>`
 - Use public ip with port 6006 to view in browser window
+11. Following or during training copy desired checkpoint files to object store for eventual use in inference
+`cp /data/saved_models/logs-<model_name>/tacotron_pretrained/tacotron*<step_number>* /jlrdata/<folder for model>`
+
+### Inference on Jetson
+1. Download model from object store
+2. Download test data from object store (if not already present)
+3. Clone this respository
+3. Create docker image for inference (if not already existing): 
+```
+cd /path/to/jetson_lip_reading
+docker build -t jlr -f dockerfiles/JLRTF1_scratch.Dockerfile .`
+```
+4. Run docker image interactively:
+```
+docker run --rm --privileged -v /home/tom/w251/jetson_lip_reading:/jetson_lip_reading -v /data:/data -ti jlr bash
+```
+5. 

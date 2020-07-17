@@ -64,5 +64,24 @@ If this is done correctly, a `ls /mnt/jlrdata` will list the contents of the jlr
 rsync -rP /mnt/jlrdata/preprocessed /data/
 cp /mnt/jlrdata/*.txt /data/
 ```
-6. 
+6. Clone this repository: `git clone https://github.com/tomgoter/jetson_lip_reading.git`
+7. Create the docker image for training. This will install all requirements and clone the original Lip2Wav Repository. 
+```
+cd jetson_lip_reading
+docker build -t jlrapp -f dockerfiles/Dockerfile.lip_reading .
 
+# Check image exists
+docker image ls
+```
+8. Launch the docker container interactively in a bash shell, with gpu support, passing in our second disk, object store, and exposing port 6006 to enable use of tensorboard.
+```
+docker run --rm -it --runtime=nvidia -v /root/jetson_lip_reading:/jetson_lip_reading -v /mnt/jlrdata:/jlrdata -v /data:/data -p 6006:6006 jlrapp bash
+```
+9a. Train from Scratch (write model checkpoints to secondary disk
+```
+python train.py baseline --data_root /jlrdata/ --preset synthesizer/presets/tom.json --restore False --models_dir /data/saved_models
+```
+9b. Restart training (write model checkpoints to secondary disk). First update the eval checkpoint path in the synthesizer/hparams file then
+```
+python train.py <new_model_name> --data_root /jlrdata/ --preset synthesizer/presets/tom.json --restore True --models_dir /data/saved_models
+```

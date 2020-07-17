@@ -6,7 +6,7 @@
 
 
 
-#### Training Procedure for Personal Dataset
+#### Preparing GPU and Training Procedure for Personal Dataset
 1. Requisition GPU from IBM Cloud Storage: For this step, we load from image a VS instance on a V100 GPU. This is done through the IBM Cloud Portal. Once recquisitioned we log on through our jump node with the following command: `ssh root@public.ip.address.of.vsi`
 2. Harden the VSI: Modify security configuration to prohibit password login to root on our instance. 
 - This is done by modifying the /etc/ssh/sshd_config file (using vi) in the following manner:
@@ -49,9 +49,20 @@ make
 sudo make install
 
 Substitue your values for <Access_Key_ID> and <Secret_Access_Key> in the below command.
-echo "9160f42c3afb425b95c81461b099c255:89522e8d17448890f9d004fcea1bffb04ed0a2dbf7c1645b" > $HOME/.cos_creds
+echo " <Access_Key_ID>:<Secret_Access_Key>" > $HOME/.cos_creds
 chmod 600 $HOME/.cos_creds
 
+# /mnt/jlrdata is location of mounted object storage
+# jlrdata is name of bucket in cloud storage
+# Change endpoint depending on where your data is stored
 sudo mkdir -m 777 /mnt/jlrdata
 sudo s3fs jlrdata /mnt/jlrdata -o passwd_file=$HOME/.cos_creds -o sigv2 -o use_path_request_style -o url=https://s3.us-east.objectstorage.softlayer.net
 ```
+If this is done correctly, a `ls /mnt/jlrdata` will list the contents of the jlrdata bucket in object store.
+5. Copy data from object store to secondary disk (this will take a while if you have a lot of files):
+```
+rsync -rP /mnt/jlrdata/preprocessed /data/
+cp /mnt/jlrdata/*.txt /data/
+```
+6. 
+

@@ -128,3 +128,4 @@ python3 complete_test_generate_tpg.py \
              --checkpoint /data/jlr_model/chem/tacotron_model.ckpt-159000 \
              --preset synthesizer/presets/chem.json
 ```
+**Note** The above example uses the complete_test_generate_tpg.py script for inference which uses tensorflow to perform the MEL-to-WAV inversion, as opposed to doing this with Librosa. This was implemented to reduce inference time on the Jetson.

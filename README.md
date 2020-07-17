@@ -77,11 +77,27 @@ docker image ls
 ```
 docker run --rm -it --runtime=nvidia -v /root/jetson_lip_reading:/jetson_lip_reading -v /mnt/jlrdata:/jlrdata -v /data:/data -p 6006:6006 jlrapp bash
 ```
-9a. Train from Scratch (write model checkpoints to secondary disk
+9. Train the model
+ - From Scratch (write model checkpoints to secondary disk)
 ```
-python train.py baseline --data_root /jlrdata/ --preset synthesizer/presets/tom.json --restore False --models_dir /data/saved_models
+python train.py <model_name> --data_root /jlrdata/ --preset synthesizer/presets/tom.json --restore False --models_dir /data/saved_models
+# Additional Command Line Options
+    --mode, default="synthesis", help="mode for synthesis of tacotron after training") 
+    --GTA, default="True", help="Ground truth aligned synthesis, defaults to True, only considered in Tacotron synthesis mode")
+    --summary_interval", type=int, default=2500, help="Steps between running summary ops")
+    --embedding_interval, type=int, default=1000000000, help="Steps between updating embeddings projection visualization")
+    --checkpoint_interval, type=int, default=1000, help="Steps between writing checkpoints")
+    --eval_interval, type=int, default=1000, help="Steps between eval on test data")
+    --tacotron_train_steps, type=int, default=100000, help="total number of tacotron training steps")
+    --tf_log_level, type=int, default=1, help="Tensorflow C++ log level.")
+# Note other training parameters such as teacher forcing options controlled in synthesizer/hparams.py file.
 ```
-9b. Restart training (write model checkpoints to secondary disk). First update the eval checkpoint path in the synthesizer/hparams file then
+- Restart training (write model checkpoints to secondary disk). First update the eval checkpoint path in the synthesizer/hparams file then
 ```
 python train.py <new_model_name> --data_root /jlrdata/ --preset synthesizer/presets/tom.json --restore True --models_dir /data/saved_models
 ```
+10. Monitor with tensorboard
+- Log into the same VSI using another terminal.
+- Jump into the docker container with `docker exec -ti jlrapp /bin/bash`
+- Run tensorboard `tensorboard --logdir=/data/saved_models/logs-<model_name>`
+- Use public ip with port 6006 to view in browser window

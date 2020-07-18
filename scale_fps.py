@@ -2,41 +2,35 @@
 import sys, os, argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', "--directory", help="Path to images to edit", required=True)
-parser.add_argument('--fps', type=int, choices=[10,15], help="Desired Output FPS", required=True)
-parser.add_argument('--down', type = bool, help="Are we reducing the number of images")
+parser.add_argument('-i', "--input_dir", help="Path to images to edit", required=True)
+parser.add_argument('-o', "--output_dir", help="Path to images to edit", required=True)
+parser.add_argument('--fps', type=int, choices=[10, 15, 20], help="Desired Output FPS", required=True)
 args = parser.parse_args()
 
-print(args.down)
+# Original Videos recorded at 30 FPS
+BASE_FPS = 30
 
-file_list = os.listdir(args.directory)
+# Create a list of images to downsample
+file_list = os.listdir(args.input_dir)
 
+# Grab the id numbers and convert to int
 file_ids = [int(x.split('.')[0]) for x in file_list if x[-3:] == 'jpg']
 
+# Sort the id numbers
 sorted_ids = sorted(file_ids)
 
+# Counter to remake sequences
 counter = 0
-stopper = 30 / args.fps
-print(f"Keeping one image of every {stopper}")
+
+# Identify how frequently to remove a frame
+stopper = int(1 / (1 - (args.fps / BASE_FPS)))
+print(f"Removing every {stopper} image")
 for s, id in enumerate(sorted_ids):
-    if id>9999: break
-    if args.down:
-        if counter == 0:
-            print(f"Keeping image {id}")
-            os.system(f'cp {args.directory}/{id}.jpg {args.directory}/{20000+int(id/stopper)}.jpg')
-            counter += 1
-        elif counter == stopper-1:
-            counter = 0
-            continue
+    if id != 0 and id % stopper == 0:
+        counter += 1
+        continue
     else:
-        if counter == 0:
-            for c in range(int(stopper)):
-                print(f"Keeping image {id}")
-                os.system(f'cp {args.directory}/{id}.jpg {args.directory}/{10000+s+c}.jpg')
-            
-        elif counter == stopper-1:
-            counter = 0  
-            continue     
-    counter += 1
+        os.system(f'cp {args.input_dir}/{id}.jpg {args.output_dir}/{id-counter}.jpg')
+
   
   

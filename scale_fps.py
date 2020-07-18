@@ -10,6 +10,9 @@ def process_video(video)
     cut_list = os.listdir(os.path.join(args.input_dir,video))
 
     for cut in cut_list:
+        # Where are we
+        print(f'Working on Video File: {cut}')
+
         # Make output directory
         os.makedirs(os.path.join(args.output_dir,video,cut), exist_ok=True)
 

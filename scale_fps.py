@@ -34,7 +34,9 @@ def process_video(video):
                 counter  = (id+1) / stopper
                 continue
             else:
-                os.system(f'cp {args.input_dir}/{video}/{cut}/{id}.jpg {args.output_dir}/{video}/{cut}/{id-counter}.jpg')
+                os.system('cp {0}/{1}/{2}/{3}.jpg {4}/{1}/{2}/{5}.jpg'.format(
+                    args.input_idr, video, cut, id, args.output_dir, (id-counter)))
+                #os.system(f'cp {args.input_dir}/{video}/{cut}/{id}.jpg {args.output_dir}/{video}/{cut}/{id-counter}.jpg')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

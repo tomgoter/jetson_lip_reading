@@ -29,9 +29,9 @@ def process_video(video)
         counter = 0
 
         print(f"Removing every {stopper} image")
-        for s, id in enumerate(sorted_ids):
-            if id != 0 and id % stopper == 0:
-                counter += 1
+        for id in sorted_ids:
+            if id != 0 and (id+1) % stopper == 0:
+                counter  = (id+1) / stopper
                 continue
             else:
                 os.system(f'cp {args.input_dir}/{video}/{cut}/{id}.jpg {args.output_dir}/{video}/{cut}/{id-counter}.jpg')

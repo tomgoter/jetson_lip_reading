@@ -5,13 +5,13 @@ import concurrent.futures
 
 
 
-def process_video(video)
+def process_video(video):
     # Create a list of images to downsample
     cut_list = os.listdir(os.path.join(args.input_dir,video))
-
+    print(cut_list)
     for cut in cut_list:
         # Where are we
-        print(f'Working on Video File: {cut}')
+        print('Working on Video File: {}'.format(cut))
 
         # Make output directory
         os.makedirs(os.path.join(args.output_dir,video,cut), exist_ok=True)
@@ -28,7 +28,7 @@ def process_video(video)
         # Counter to remake sequences
         counter = 0
 
-        print(f"Removing every {stopper} image")
+        print("Removing every {} image".format(stopper))
         for id in sorted_ids:
             if id != 0 and (id+1) % stopper == 0:
                 counter  = (id+1) / stopper

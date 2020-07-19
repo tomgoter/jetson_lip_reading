@@ -1,6 +1,7 @@
 # General Imports
 import time
 import sys
+import os
 from os import listdir, path
 
 # Image Processing / Face Detection Imports
@@ -21,10 +22,9 @@ PUBLISHING_QOS = int(sys.argv[4])
 PUBLISH_TO_TOPIC = str(sys.argv[5])
 
 # Params taken from preprocessing script
-resize_factor = 1 # default
 min_size = 100 # found decently matched results on S3FD model for chem guy
 output_dir = "output_faces/"
-os.makedirs(fulldir, exist_ok=True)
+os.makedirs(output_dir, exist_ok=True)
 
 
 def on_log(client, userdata, level, buf):
@@ -67,9 +67,8 @@ cam = cv2.VideoCapture(1)
 face_detector = TrtMtcnn()
 frame_counter = -1
 while(True):
-   # capture frame and resize frame accordingly (resize_factor defaults to 1)
+   # capture frame 
    ret, frame = cam.read()
-   frame = cv2.resize(frame, (frame.shape[1]//resize_factor, frame.shape[0]//resize_factor))
 
    # identity faces
    faces, landmarks = face_detector.detect(frame, minsize=min_size)

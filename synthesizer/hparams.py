@@ -7,7 +7,7 @@ def get_image_list(split, data_root):
     with open(os.path.join(data_root, '{}.txt'.format(split))) as vidlist:
         for vid_id in vidlist:
             vid_id = vid_id.strip()
-            filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', vid_id, '*/*.jpg'))))   
+            filelist.extend(list(glob(os.path.join(data_root, 'pp_20fps', vid_id, '*/*.jpg'))))
     return filelist
 
 # Default hyperparameters
@@ -310,9 +310,9 @@ hparams = HParams(
     # initial teacher forcing ratio. Relevant if mode="scheduled"
     tacotron_teacher_forcing_final_ratio=0.,
     # final teacher forcing ratio. Relevant if mode="scheduled"
-    tacotron_teacher_forcing_start_decay=29000,
+    tacotron_teacher_forcing_start_decay=20000,
     # starting point of teacher forcing ratio decay. Relevant if mode="scheduled"
-    tacotron_teacher_forcing_decay_steps=130000,
+    tacotron_teacher_forcing_decay_steps=80000,
     # Determines the teacher forcing ratio decay slope. Relevant if mode="scheduled"
     tacotron_teacher_forcing_decay_alpha=0.,
     # teacher forcing ratio decay rate. Relevant if mode="scheduled"
@@ -334,12 +334,12 @@ hparams = HParams(
     eval_ckpt="/mnt/jlrdata/baseline_model/tacotron_model.ckpt-55000",
     
     speaker="unset",
-    T=90,
+    T=30,
     overlap=15,
     mel_overlap=40,
     mel_step_size=240,
     img_size=96,
-    fps=30,
+    fps=20,
 )
 
 

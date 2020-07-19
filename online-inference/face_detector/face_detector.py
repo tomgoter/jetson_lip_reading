@@ -7,7 +7,7 @@ from os import listdir, path
 # Image Processing / Face Detection Imports
 import numpy as np
 import cv2
-from utils.mtcnn import TrtMtcnn
+from mtcnn.mtcnn import TrtMtcnn
 
 # MQTT imports
 import paho.mqtt.client as mqtt

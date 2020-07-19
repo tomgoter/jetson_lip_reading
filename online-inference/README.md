@@ -1,8 +1,8 @@
 # Online Inference
 
-## Running Face Detector
+## Face Detector
 
-All necessary code for face detection lives in `face_detector/`. 
+All necessary code for face detection lives in `face_detector/`, including the Dockerfile to construct this container. 
 
 The following docker commands can be used to create and run everything from the `face_detector/` folder:
 ```
@@ -12,5 +12,9 @@ The following docker commands can be used to create and run everything from the 
 ```
 
 Running the docker container will start up the face detection model and will read in images from the attached camera at video input 1. 
-python3 face_detector.py "jetson-facedetector" $PUB_HOST 1883 $QOS "jetson/broker"
+
+Credits for the face detection model go to the MTCNN Face Detection demo linked here: https://github.com/jkjung-avt/tensorrt_demos#demo-2-mtcnn
+
+
+## Running the Synthesizer
 

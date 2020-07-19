@@ -1,4 +1,5 @@
-FROM w251/cuda:dev-tx2-4.3_b132
+#FROM w251/cuda:dev-tx2-4.3_b132
+FROM w251/keras:dev-tx2-4.3_b132
 
 # Install dependencies defined in hw 3
 RUN apt update

@@ -15,10 +15,10 @@
     "tacotron_teacher_forcing_start_decay" : 20000,
     "tacotron_teacher_forcing_decay_steps" : 80000,
 
-    "T" : 90,
+    "T" : 30,
     "overlap" : 15,
     "mel_overlap" : 40,
     "mel_step_size" : 240,
     "img_size" : 96,
-    "fps" : 30
+    "fps" : 20
 }

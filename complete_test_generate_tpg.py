@@ -1,9 +1,7 @@
-import synthesizer
 from synthesizer import inference as sif
 import numpy as np
 import sys, cv2, os, pickle, argparse, subprocess
 from tqdm import tqdm
-from shutil import copy
 from glob import glob
 
 class Generator(object):
@@ -35,7 +33,6 @@ class Generator(object):
             all_windows.append(images[i : i + hp.T])
             i += hp.T - hp.overlap
 
-        print
         for window_idx, window_fnames in enumerate(all_windows):
             images = self.read_window(window_fnames)
 

@@ -43,7 +43,7 @@ if __name__ == "__main__":
 							 "in Tacotron synthesis mode")
     parser.add_argument("--restore", type=bool, default=True,
                         help="Set this to False to do a fresh training")
-    parser.add_argument("--summary_interval", type=int, default=2500,
+    parser.add_argument("--summary_interval", type=int, default=1000,
                         help="Steps between running summary ops")
     parser.add_argument("--embedding_interval", type=int, default=1000000000,
                         help="Steps between updating embeddings projection visualization")

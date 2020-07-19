@@ -23,8 +23,6 @@ PUBLISH_TO_TOPIC = str(sys.argv[5])
 
 # Params taken from preprocessing script
 min_size = 100 # found decently matched results on S3FD model for chem guy
-output_dir = "output_faces/"
-os.makedirs(output_dir, exist_ok=True)
 
 
 def on_log(client, userdata, level, buf):
@@ -81,11 +79,9 @@ while(True):
       x1, y1, x2, y2 = int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3])
       face = frame[y1:y2, x1:x2]
 
-      cv2.imwrite(path.join(output_dir, '{}.jpg'.format(frame_counter)), face)
-
-      #rc, png = cv2.imencode('.png', face)
-      #message = png.tobytes()
-      #client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
+      rc, png = cv2.imencode('.png', face)
+      message = png.tobytes()
+      client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
 
       if (len(faces) > 1):
          break; 

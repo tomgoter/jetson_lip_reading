@@ -2,7 +2,7 @@ FROM w251/cuda:dev-tx2-4.3_b132
 
 # Install dependencies defined in hw 3
 RUN apt update
-RUN apt install -y python3-opencv
+RUN apt install -y python3-opencv python3-pip
 RUN pip3 install paho-mqtt
 
 

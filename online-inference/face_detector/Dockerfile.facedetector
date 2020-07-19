@@ -11,9 +11,6 @@ RUN cd /face_detector
 WORKDIR /face_detector
 ADD ./ /face_detector/
 
-# Do setup for mtcnn model
-ENTRYPOINT ["/face_detector/setup_mtcnn_model.sh"]
-
 EXPOSE 1883
 
 # define environment variables for command line & set defaults

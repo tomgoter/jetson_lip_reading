@@ -21,7 +21,30 @@ Credits for the face detection model go to the MTCNN Face Detection demo linked 
 
 The referenced demo references source code of [NVIDIA/TensorRT](https://github.com/NVIDIA/TensorRT) samples to develop most of the demos in its repository. Those NVIDIA samples are under [Apache License 2.0](https://github.com/NVIDIA/TensorRT/blob/master/LICENSE).
 
+
 ## Running the Synthesizer
+
+### Running the Container
+
+All necessary code for face detection lives in `audio_synthesizer/`, including the Dockerfile used to construct this container. 
+
+The following docker commands can be used to create and run everything from the `audio_synthesizer/` folder:
+```
+> docker build -t as_jlr -f Dockerfile.audiosynthesizer .                       # to build the image
+> docker run -ti --name as1 -e DISPLAY=$DISPLAY -e QOS=2 as_jlr                 # to start the container
+> docker container stop as1 && docker container rm as1                          # to stop & remove container
+```
+
+Running the docker container _____
+
+### References & Licenses
+
+Credits for the work done for synthesizing the audio samples from images of faces goes to the research project Lip2Wav linked here: [https://github.com/Rudrabha/Lip2Wav](https://github.com/Rudrabha/Lip2Wav)
+
+For licenses, citations, and acknowledgements, please refer to the links included below:
+* [https://github.com/Rudrabha/Lip2Wav#license-and-citation](https://github.com/Rudrabha/Lip2Wav#license-and-citation)
+* [https://github.com/Rudrabha/Lip2Wav#acknowledgements](https://github.com/Rudrabha/Lip2Wav#acknowledgements)
+
 
 
 

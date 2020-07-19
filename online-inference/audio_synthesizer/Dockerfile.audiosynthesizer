@@ -1,0 +1,24 @@
+FROM tensorrtlab05
+
+# Install dependencies
+RUN apt update
+RUN pip3 install paho-mqtt
+
+# Copy over files
+RUN mkdir /audio_synthesizer
+RUN cd /audio_synthesizer
+WORKDIR /audio_synthesizer
+ADD ./ /audio_synthesizer/
+
+EXPOSE 1883
+
+# define environment variables for command line & set defaults
+ENV QOS 1
+ENV PUB_HOST "10.0.0.34"
+ENV SUB_HOST "10.0.0.34"
+ENV PUB_TOPIC "jetson/audio"
+END SUB_TOPIC "jetson/faces"
+
+# Run audio synthesizer script with parameters
+CMD python audio_synthesizer.py "jetson-face-receiver" $PUB_HOST 1883 $QOS $SUB_TOPIC \
+                                "jetson-audio-sender"  $SUB_HOST 1883 $QOS $PUB_TOPIC

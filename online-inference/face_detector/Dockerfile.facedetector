@@ -13,7 +13,10 @@ ADD ./ /face_detector/
 
 EXPOSE 1883
 
-# define environment variables for command line & set defaults
+# Define environment variables for command line & set defaults
 ENV QOS 1
 ENV PUB_HOST "10.0.0.34"
-CMD python3 face_detector.py "jetson-facedetector" $PUB_HOST 1883 $QOS "jetson/broker"
+ENV PUB_TOPIC "jetson/faces"
+
+# Run face detector script with parameters
+CMD python3 face_detector.py "jetson-face-sender" $PUB_HOST 1883 $QOS $PUB_TOPIC

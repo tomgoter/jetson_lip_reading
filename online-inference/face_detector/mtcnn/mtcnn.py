@@ -3,7 +3,7 @@
 
 import numpy as np
 import cv2
-import pytrt
+import pytrt.pytrt as pytrt
 
 
 PIXEL_MEAN = 127.5

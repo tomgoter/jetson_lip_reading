@@ -1,0 +1,14 @@
+FROM w251/cuda:dev-tx2-4.3_b132
+
+# Install dependencies defined in hw 3
+RUN apt update
+RUN apt install -y python3-opencv
+RUN pip3 install paho-mqtt
+
+
+EXPOSE 1883
+
+# define environment variables for command line & set defaults
+ENV QOS 1
+ENV PUB_HOST "10.0.0.45"
+#CMD python3 facedetector.py "jetson-facedetector" $PUB_HOST 1883 $QOS "jetson/broker"

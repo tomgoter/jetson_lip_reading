@@ -21,9 +21,6 @@ RUN pip3 install numba==0.49.1
 RUN pip3 install llvmlite==0.32.1
 RUN pip3 install librosa==0.7.0
 
-RUN apt-get install -y libsndfile1-dev
-RUN pip3 install SoundFile==0.10.2 ########
-
 RUN pip3 install multiprocess
 RUN apt install -y python3-opencv
 RUN pip3 install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v43 "tensorflow-gpu<2" #####

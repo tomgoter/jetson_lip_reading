@@ -64,8 +64,8 @@ num_frames = sif.hparams.T
 # Define a frame queue 
 face_queue = queue.Queue()
 
-def on_log(client, userdata, level, buf):
-   print(buf)
+#def on_log(client, userdata, level, buf):
+#   print(buf)
 
 def on_connect(client, userdata, flags, rc):
    if (rc == 0):
@@ -77,8 +77,8 @@ def on_connect(client, userdata, flags, rc):
 def on_disconnect(client, userdata, rc):
    print("client disconnected ok")
 
-def on_publish(client, userdata, mid):
-   print("in on_publish callback mid = ", mid)
+#def on_publish(client, userdata, mid):
+#   print("in on_publish callback mid = ", mid)
 
 def on_subscribe(client, userdata, mid, granted_qos):
    print("subscribed")
@@ -107,7 +107,7 @@ def on_message(client, userdata, message):
 
 # Set up receiver client & callbacks
 receiver_client = mqtt.Client(args.sub_client_name)
-receiver_client.on_log = on_log
+#receiver_client.on_log = on_log
 receiver_client.on_connect = on_connect
 receiver_client.on_disconnect = on_disconnect
 receiver_client.on_message = on_message
@@ -117,10 +117,10 @@ receiver_client.connect(args.sub_mqtt_host, args.sub_mqtt_port)
 '''
 # Set up sender client & callbacks
 sender_client = mqtt.Client(args.pub_client_name)
-sender_client.on_log = on_log
+#sender_client.on_log = on_log
 sender_client.on_connect = on_connect
 sender_client.on_disconnect = on_disconnect
-sender_client.on_publish = on_publish
+#sender_client.on_publish = on_publish
 sender_client.connect(args.pub_mqtt_host, args.pub_mqtt_port)
 '''
 
@@ -149,7 +149,7 @@ class Generator(object):
       wav = self.synthesizer.griffin_lim(mel_spec)
 
       # Save synthesized wav to outputfile location
-      sif.audio.save_wav(wav, outfile, sr=hp.sample_rate)
+      sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
 
 # Initialize audio generator
 wav_generator = Generator()

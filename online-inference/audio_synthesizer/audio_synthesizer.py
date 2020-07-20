@@ -3,6 +3,7 @@ import time
 import sys, os, pickle, argparse, subprocess
 from tqdm import tqdm
 from profilehooks import timecall
+import queue
 import paho.mqtt.client as mqtt
 
 # Synthesizer imports
@@ -53,12 +54,15 @@ args = parser.parse_args()
 with open(args.preset) as f:
    sif.hparams.parse_json(f.read()) ## add speaker-specific parameters
 sif.hparams.set_hparam('eval_ckpt', args.checkpoint)
+WAVS_ROOT = os.path.join(args.results_root, 'wavs/')
+if not os.path.isdir(WAVS_ROOT):
+   os.mkdir(WAVS_ROOT)
 
 # Set params for processing
-num_frames = 30 # sif.hparams.T
+num_frames = sif.hparams.T
 
 # Define a frame queue 
-face_queue = Queue()
+face_queue = queue.Queue()
 
 def on_log(client, userdata, level, buf):
    print(buf)
@@ -80,14 +84,15 @@ def on_subscribe(client, userdata, mid, granted_qos):
    print("subscribed")
 
 def on_message(client, userdata, message):
-   print("message received")
-   print("message topic=", message.topic)
-   print("message qos=", message.qos)
-   print("message retain flag=", message.retain)
-   print("\n")
+   #print("message received")
+   #print("message topic=", message.topic)
+   #print("message qos=", message.qos)
+   #print("message retain flag=", message.retain)
+   #print("\n")
 
    # Put frame to python queue to be processed when batches of num_frames are available
-   face = cv2.imdecode(message.payload)
+   face = np.asarray(bytearray(message.payload), dtype="uint8")
+   face = cv2.imdecode(face, cv2.IMREAD_COLOR)
    face_queue.put(face, block=True)
    
    '''
@@ -121,7 +126,9 @@ sender_client.connect(args.pub_mqtt_host, args.pub_mqtt_port)
 
 # start clients & subscribe receiver client to topic
 receiver_client.loop_start()
+'''
 sender_client.loop_start()
+'''
 receiver_client.subscribe(args.sub_topic, args.sub_qos)
 
 
@@ -169,8 +176,10 @@ while True:
          audio_sample_num += 1
       except KeyboardInterrupt:
          exit(0)
+'''
       except Exception as e:
          print(e)
          continue
+'''
 
 

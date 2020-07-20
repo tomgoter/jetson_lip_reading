@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--GTA", default="True",
                         help="Ground truth aligned synthesis, defaults to True, only considered "
 							 "in Tacotron synthesis mode")
-    parser.add_argument("--restore", type=bool, default=True,
+    parser.add_argument("--restore", type=bool, default=False,
                         help="Set this to False to do a fresh training")
     parser.add_argument("--summary_interval", type=int, default=1000,
                         help="Steps between running summary ops")

@@ -76,7 +76,11 @@ class Synthesizer:
         sequence length of spectrogram i, and possibly the alignments.
         """
         if not self.is_loaded():
+            print("@@@@@@@@@@\nLOADING MODEL....\n@@@@@@@@@@")
             self.load()
+        else:
+            print("$$$$$$$$$$\nMODEL ALREADY LOADED\n$$$$$$$$$$$")
+            
         specs, alignments = self._model.my_synthesize(faces)
         
         return (specs, alignments) if return_alignments else specs

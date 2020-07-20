@@ -131,15 +131,14 @@ sender_client.loop_start()
 '''
 receiver_client.subscribe(args.sub_topic, args.sub_qos)
 
-# frame batches per wav file
-mel_batches_per_wav_file = 10
-mel_batch = None
-num_mels = 0
-
 class Generator(object):
    def __init__(self):
       super(Generator, self).__init__()
       self.synthesizer = sif.Synthesizer(verbose=False)
+
+      self.mel_batches_per_wav_file = 5
+      self.mel_batch = None
+      self.num_mels = 0
 
    def convert_to_wav_and_save(self, images, outfile):
       # Resize images
@@ -150,21 +149,24 @@ class Generator(object):
       mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]         
          
       # collect batches of mel spectrograms before saving to wav file
-      if mel_batch == None:
-         mel_batch = mel_spec
-         num_mels = 1
+      if self.num_mels == 0:
+         self.mel_batch = mel_spec
+         self.num_mels = 1
       else:
-         mel_batch = np.concatenate((mel_batch, mel_spec[:, hp.mel_overlap:]), axis=1)
-         num_mels += 1
+         self.mel_batch = np.concatenate((self.mel_batch, mel_spec[:, sif.hparams.mel_overlap:]), axis=1)
+         self.num_mels += 1
 
-      if (num_mels == mel_batches_per_wav_file):
+      if (self.num_mels == self.mel_batches_per_wav_file):
          print("saving wav file of mel spectrograms")
 
          # Synthesize Audio based on spectrogram
-         wav = self.synthesizer.griffin_lim(mel_batch)
+         wav = self.synthesizer.griffin_lim(self.mel_batch)
 
          # Save synthesized wav to outputfile location
          sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
+
+         self.num_mels = 0
+         self.mel_batch = None
 
 # Initialize audio generator
 wav_generator = Generator()

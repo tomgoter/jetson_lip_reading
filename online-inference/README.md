@@ -31,11 +31,15 @@ All necessary code for face detection lives in `audio_synthesizer/`, including t
 The following docker commands can be used to create and run everything from the `audio_synthesizer/` folder:
 ```
 > docker build -t as_jlr -f Dockerfile.audiosynthesizer .                       # to build the image
-> docker run -ti --name as1 -e DISPLAY=$DISPLAY -e QOS=2 as_jlr                 # to start the container
+> docker run -ti --name as1 -e QOS=2 as_jlr                                     # to start the container
+> docker run -ti --name as1 -e QOS=2 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/:/audio_synthesizer/ as_jlr bash              
+
 > docker container stop as1 && docker container rm as1                          # to stop & remove container
 ```
 
 Running the docker container _____
+
+python3 audio_synthesizer.py -d Dataset/mini_sample -r Dataset/mini_sample/test_results --preset synthesizer/presets/chem.json --checkpoint "weights/logs_chemistry/tacotron_model.ckpt-159000" --sub_client_name "jetson-face-receiver" --sub_mqtt_host $PUB_HOST --sub_mqtt_port 1883 --sub_qos $QOS --sub_topic $SUB_TOPIC
 
 ### References & Licenses
 

@@ -25,8 +25,8 @@ PUBLISH_TO_TOPIC = str(sys.argv[5])
 min_size = 100 # found decently matched results on S3FD model for chem guy
 
 
-def on_log(client, userdata, level, buf):
-   print(buf)
+#def on_log(client, userdata, level, buf):
+#   print(buf)
 
 def on_connect(client, userdata, flags, rc):
    if (rc == 0):
@@ -39,16 +39,16 @@ def on_connect(client, userdata, flags, rc):
 def on_disconnect(client, userdata, rc):
    print("client disconnected ok")
 
-def on_publish(client, userdata, mid):
-   print("in on_publish callback mid = ", mid)
+#def on_publish(client, userdata, mid):
+#   print("in on_publish callback mid = ", mid)
 
 
 # Set up publishing client & callbacks
 client = mqtt.Client(PUBLISHING_CLIENT_NAME)
-client.on_log = on_log
+#client.on_log = on_log
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
-client.on_publish = on_publish
+#client.on_publish = on_publish
 client.connect(PUBLISHING_MQTT_HOST, PUBLISHING_MQTT_PORT)
 
 # wait for client to establish connection to broker
@@ -69,9 +69,12 @@ while(True):
    ret, frame = cam.read()
 
    # identity faces
+   start = time.time()
    faces, landmarks = face_detector.detect(frame, minsize=min_size)
+   duration = time.time() - start
+   print("duration = " + str(duration * 1000) + " ms (" + str(1 / duration) + " fps)")
    frame_counter += 1
-   print("did a detection")
+   #print("did a detection")
 
    # extract & publish faces
    for bb in faces:

@@ -64,8 +64,9 @@ num_frames = sif.hparams.T
 # Define a frame queue 
 face_queue = queue.Queue()
 
-#def on_log(client, userdata, level, buf):
-#   print(buf)
+
+def on_log(client, userdata, level, buf):
+   print(buf)
 
 def on_connect(client, userdata, flags, rc):
    if (rc == 0):
@@ -107,7 +108,7 @@ def on_message(client, userdata, message):
 
 # Set up receiver client & callbacks
 receiver_client = mqtt.Client(args.sub_client_name)
-#receiver_client.on_log = on_log
+receiver_client.on_log = on_log
 receiver_client.on_connect = on_connect
 receiver_client.on_disconnect = on_disconnect
 receiver_client.on_message = on_message
@@ -136,7 +137,7 @@ class Generator(object):
       super(Generator, self).__init__()
       self.synthesizer = sif.Synthesizer(verbose=False)
 
-      self.mel_batches_per_wav_file = 5
+      self.mel_batches_per_wav_file = 2
       self.mel_batch = None
       self.num_mels = 0
 
@@ -157,7 +158,7 @@ class Generator(object):
          self.num_mels += 1
 
       if (self.num_mels == self.mel_batches_per_wav_file):
-         print("saving wav file of mel spectrograms")
+         print("$$$$ saving wav file of mel spectrograms")
 
          # Synthesize Audio based on spectrogram
          wav = self.synthesizer.griffin_lim(self.mel_batch)
@@ -167,6 +168,9 @@ class Generator(object):
 
          self.num_mels = 0
          self.mel_batch = None
+         print("$$$$$$$$$ saved wav file")
+      else:
+         print("$$$$ did not save wav file yet...")
 
 # Initialize audio generator
 wav_generator = Generator()
@@ -174,6 +178,9 @@ wav_generator = Generator()
 # Wait for messages until disconnected by system interrupt
 audio_sample_num = 1
 while True:
+   num_frames = sif.hparams.T
+   print("queue size = " + str(face_queue.qsize()))
+
    # Check to see if queue has enough frames
    if (face_queue.qsize() >= num_frames):
       print("reached " + str(num_frames) + " frames")

@@ -17,7 +17,7 @@ EXPOSE 1883
 ENV QOS 1
 ENV PUB_HOST "10.0.0.34"
 ENV PUB_TOPIC "jetson/faces"
-ENV SOURCE_DIR "./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/"
+ENV SOURCE_DIR "./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/"
 
 # Run face detector script with parameters
 CMD python3 fake_face_detector.py "jetson-face-sender" $PUB_HOST 1883 $QOS $PUB_TOPIC $SOURCE_DIR

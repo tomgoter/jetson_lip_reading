@@ -58,9 +58,17 @@ while not client.connected_flag:
    time.sleep(1)
 
 
-# Iterate through all cut directories in numerical order
-cutdirs_and_nums = [(path.join(SOURCE_DIRECTORY, d), int(d[4:])) for d in listdir(SOURCE_DIRECTORY) if os.path.isdir(path.join(SOURCE_DIRECTORY, d))] 
-cutdirs_and_nums.sort(key=lambda x: x[1])
+# Specify tuples of source directories of face frames and the corresponding numerical order
+# Note that this is specific to how Lip2Wav preprocessing works on YouTube videos
+if ("cut" in os.path.basename(os.path.normpath(SOURCE_DIRECTORY))):
+   # path to single cut directory with face frames specified
+   cutdirs_and_nums = [(SOURCE_DIRECTORY, 0)]
+else:
+   # path to multiple cut directories each with own set of face frames specified
+   cutdirs_and_nums = [(path.join(SOURCE_DIRECTORY, d), int(d[4:])) for d in listdir(SOURCE_DIRECTORY) if os.path.isdir(path.join(SOURCE_DIRECTORY, d))] 
+   cutdirs_and_nums.sort(key=lambda x: x[1])
+
+# Iterate through all cut directories in numerical order (pre-sorted)
 for (cutdir, dirnum) in cutdirs_and_nums:
    # Grab all image file names in numerical order
    fnames_and_nums = [(path.join(cutdir, f), int(f[0:-4])) for f in listdir(cutdir) if f[-4:] == ".jpg"] 

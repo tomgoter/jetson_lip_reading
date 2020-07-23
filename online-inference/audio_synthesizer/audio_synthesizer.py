@@ -136,6 +136,7 @@ class Generator(object):
    def __init__(self):
       super(Generator, self).__init__()
       self.synthesizer = sif.Synthesizer(verbose=False)
+      self.synthesizer.load()
 
       self.mel_batches_per_wav_file = 2
       self.mel_batch = None

@@ -59,13 +59,11 @@ while not client.connected_flag:
 
 
 # Iterate through all cut directories in numerical order
-cutdirs_and_nums = [(path.join(SOURCE_DIRECTORY, d), int(d[4:])) for d in listdir(SOURCE_DIRECTORY)] 
+cutdirs_and_nums = [(path.join(SOURCE_DIRECTORY, d), int(d[4:])) for d in listdir(SOURCE_DIRECTORY) if os.path.isdir(path.join(SOURCE_DIRECTORY, d))] 
 cutdirs_and_nums.sort(key=lambda x: x[1])
-for cutdir in cutdirs_and_nums:
-   cutdir_full = print(path.join(SOURCE_DIRECTORY, cutdir))
-
+for (cutdir, dirnum) in cutdirs_and_nums:
    # Grab all image file names in numerical order
-   fnames_and_nums = [(path.join(cutdir_full, f), int(f[0:-4])) for f in listdir(cutdir_full)] 
+   fnames_and_nums = [(path.join(cutdir, f), int(f[0:-4])) for f in listdir(cutdir) if f[-4:] == ".jpg"] 
    fnames_and_nums.sort(key=lambda x: x[1])
 
    # start up face grabber and publish message to broker when a face is detected

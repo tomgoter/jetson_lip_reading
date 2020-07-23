@@ -57,23 +57,30 @@ while not client.connected_flag:
    print("waiting to connect...")
    time.sleep(1)
 
-# Grab all image file names in numerical order
-fnames_and_nums = [(path.join(SOURCE_DIRECTORY, f), int(f[0:-4])) for f in listdir(SOURCE_DIRECTORY)] 
-fnames_and_nums.sort(key=lambda x: x[1])
 
-# start up face grabber and publish message to broker when a face is detected
-frame_counter = -1
-for (fname, num) in fnames_and_nums:
-   # extract & publish faces
-   face = cv2.imread(fname, cv2.IMREAD_COLOR)
-   if np.shape(face) == ():
-      print("continuing? fname = " + str(fname) + ", " + str(num))
-      continue
-   print("fname = " + str(fname) + ", " + str(num))
-   rc, png = cv2.imencode('.png', face)
-   message = png.tobytes()
-   client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
-   frame_counter += 1
+# Iterate through all cut directories in numerical order
+cutdirs_and_nums = [(path.join(SOURCE_DIRECTORY, d), int(d[4:])) for d in listdir(SOURCE_DIRECTORY)] 
+cutdirs_and_nums.sort(key=lambda x: x[1])
+for cutdir in cutdirs_and_nums:
+   cutdir_full = print(path.join(SOURCE_DIRECTORY, cutdir))
+
+   # Grab all image file names in numerical order
+   fnames_and_nums = [(path.join(cutdir_full, f), int(f[0:-4])) for f in listdir(cutdir_full)] 
+   fnames_and_nums.sort(key=lambda x: x[1])
+
+   # start up face grabber and publish message to broker when a face is detected
+   frame_counter = -1
+   for (fname, num) in fnames_and_nums:
+      # extract & publish faces
+      face = cv2.imread(fname, cv2.IMREAD_COLOR)
+      if np.shape(face) == ():
+         print("continuing? fname = " + str(fname) + ", " + str(num))
+         continue
+      print("fname = " + str(fname) + ", " + str(num))
+      rc, png = cv2.imencode('.png', face)
+      message = png.tobytes()
+      client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
+      frame_counter += 1
 
 # do clean up
 client.loop_stop()

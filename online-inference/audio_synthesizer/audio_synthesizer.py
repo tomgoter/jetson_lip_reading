@@ -26,7 +26,7 @@ parser.add_argument("-d", "--data_root", help="Speaker folder path", required=Tr
 parser.add_argument("-r", "--results_root", help="Speaker folder path", required=True)
 parser.add_argument("--checkpoint", help="Path to trained checkpoint", required=True)
 parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
-parser.add_argument("--cpu_based_synthesis", help="Whether to use CPU-based method of synthesis to wav", type=bool, default=True)
+parser.add_argument("--cpu_based_synthesis", help="Whether to use CPU-based method of synthesis to wav", type=bool, default=False)
 
 # Subscribing client params
 parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True)
@@ -167,13 +167,16 @@ class Generator(object):
       else:
          print("$$$$ did not save wav file yet...")
 
+   def resize_and_nparrize_images(images):
+      images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
+      images = np.asarray(images) / 255.
+      return images
+
    def convert_to_wav_and_save_cpu_based(self, images, outfile):
       '''
       CPU based method of converting batches of face images to wav files
       '''
-      # Resize images
-      images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
-      images = np.asarray(images) / 255.
+      resize_and_nparrize_images(images)
 
       # Synthesize Spectrogram
       mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]
@@ -181,6 +184,11 @@ class Generator(object):
       self.save_mel_as_wav(mel_spec, outfile)  
 
    def convert_to_wav_and_save_gpu_based(self, images, outfile):
+      '''
+      GPU based method of converting batches of face images to wav files
+      '''
+      resize_and_nparrize_images(images)
+
       # Synthesize wav file from batch of images
       wav = self.synthesizer.synthesize_wavs(images)
 

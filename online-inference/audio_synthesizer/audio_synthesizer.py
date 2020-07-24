@@ -139,7 +139,7 @@ class Generator(object):
       self.synthesizer = sif.Synthesizer(verbose=False)
       self.synthesizer.load(cpu_based=args.cpu_based_synthesis)
 
-      self.mel_batches_per_wav_file = 2
+      self.mel_batches_per_wav_file = 1
       self.mel_batch = None
       self.num_mels = 0
 
@@ -167,27 +167,29 @@ class Generator(object):
       else:
          print("$$$$ did not save wav file yet...")
 
-   def resize_and_nparrize_images(images):
+   def resize_and_nparrize_images(self, images):
       images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
       images = np.asarray(images) / 255.
       return images
 
+   @timecall(immediate=True)
    def convert_to_wav_and_save_cpu_based(self, images, outfile):
       '''
       CPU based method of converting batches of face images to wav files
       '''
-      resize_and_nparrize_images(images)
+      images = self.resize_and_nparrize_images(images)
 
       # Synthesize Spectrogram
       mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]
 
       self.save_mel_as_wav(mel_spec, outfile)  
 
+   @timecall(immediate=True)
    def convert_to_wav_and_save_gpu_based(self, images, outfile):
       '''
       GPU based method of converting batches of face images to wav files
       '''
-      resize_and_nparrize_images(images)
+      images = self.resize_and_nparrize_images(images)
 
       # Synthesize wav file from batch of images
       wav = self.synthesizer.synthesize_wavs(images)
@@ -201,9 +203,10 @@ wav_generator = Generator(args)
 
 # Wait for messages until disconnected by system interrupt
 audio_sample_num = 1
+print("\n#########\n Ready to receive faces\n##########\n")
 while True:
    num_frames = sif.hparams.T
-   print("queue size = " + str(face_queue.qsize()))
+   #print("queue size = " + str(face_queue.qsize()))
 
    # Check to see if queue has enough frames
    if (face_queue.qsize() >= num_frames):

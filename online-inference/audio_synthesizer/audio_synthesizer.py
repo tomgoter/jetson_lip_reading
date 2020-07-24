@@ -26,6 +26,7 @@ parser.add_argument("-d", "--data_root", help="Speaker folder path", required=Tr
 parser.add_argument("-r", "--results_root", help="Speaker folder path", required=True)
 parser.add_argument("--checkpoint", help="Path to trained checkpoint", required=True)
 parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
+parser.add_argument("--cpu_based_synthesis", help="Whether to use CPU-based method of synthesis to wav", type=bool, default=True)
 
 # Subscribing client params
 parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True)
@@ -136,21 +137,14 @@ class Generator(object):
    def __init__(self):
       super(Generator, self).__init__()
       self.synthesizer = sif.Synthesizer(verbose=False)
-      self.synthesizer.load()
+      self.synthesizer.load(cpu_based=cpu_based_synthesis)
 
       self.mel_batches_per_wav_file = 2
       self.mel_batch = None
       self.num_mels = 0
 
-   def convert_to_wav_and_save(self, images, outfile):
-      # Resize images
-      images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
-      images = np.asarray(images) / 255.
-
-      # Synthesize Spectrogram
-      mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]         
-         
-      # collect batches of mel spectrograms before saving to wav file
+   def save_mel_as_wav(self, mel_spec, outfile):
+      # collect batches of mel spectrograms before saving to wav file (to make bigger mels)
       if self.num_mels == 0:
          self.mel_batch = mel_spec
          self.num_mels = 1
@@ -172,6 +166,27 @@ class Generator(object):
          print("$$$$$$$$$ saved wav file")
       else:
          print("$$$$ did not save wav file yet...")
+
+   def convert_to_wav_and_save_cpu_based(self, images, outfile):
+      '''
+      CPU based method of converting batches of face images to wav files
+      '''
+      # Resize images
+      images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
+      images = np.asarray(images) / 255.
+
+      # Synthesize Spectrogram
+      mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]
+
+      self.save_mel_as_wav(mel_spec, outfile)  
+
+   def convert_to_wav_and_save_gpu_based(self, images, outfile):
+      # Synthesize wav file from batch of images
+      wav = self.synthesizer.synthesize_wavs(images)
+
+      # Save synthesized wav to outputfile location
+      sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
+
 
 # Initialize audio generator
 wav_generator = Generator()
@@ -195,9 +210,13 @@ while True:
       try:
          outfile = '{}{}.wav'.format(WAVS_ROOT, audio_sample_num)
          start = time.time()
-         wav_generator.convert_to_wav_and_save(faces_to_process, outfile)
-         print("Converted " + str(num_frames) + " frames to wav in " + str(outfile) +
-            ", duration: "+ str((time.time() - start) * 1000) + " ms")
+
+         if (args.cpu_based_synthesis):
+            wav_generator.convert_to_wav_and_save_cpu_based(faces_to_process, outfile)
+         else:
+            wav_generator.convert_to_wav_and_save_gpu_based(faces_to_process, outfile)
+
+         print("Converted " + str(num_frames) + " frames to wav in " + str(outfile) + ", duration: "+ str((time.time() - start) * 1000) + " ms")
          audio_sample_num += 1
       except KeyboardInterrupt:
          exit(0)

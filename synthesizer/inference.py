@@ -144,7 +144,7 @@ class Synthesizer:
         return mel_spectrogram
     
     @staticmethod
-    def griffin_lim(mel, use_tf=True):
+    def griffin_lim(mel, use_tf=False):
         """
         Inverts a mel spectrogram using Griffin-Lim. The mel spectrogram is expected to have been built
         with the same parameters present in hparams.py.

@@ -337,7 +337,7 @@ hparams = HParams(
     T=30,
     overlap=15,
     mel_overlap=40,
-    mel_step_size=240,
+    mel_step_size=120,
     img_size=96,
     fps=20,
 )

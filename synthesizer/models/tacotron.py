@@ -504,6 +504,9 @@ class Tacotron():
                 v = grad_and_vars[0][1]
                 avg_grads.append(grad)
                 vars.append(v)
+                #if 'encoder_' not in v.name:
+                #    avg_grads.append(grad)
+                #    vars.append(v)
             
             self.gradients = avg_grads
             # Just for causion

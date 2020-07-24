@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--GTA", default="True",
                         help="Ground truth aligned synthesis, defaults to True, only considered "
 							 "in Tacotron synthesis mode")
-    parser.add_argument("--restore", type=bool, default=False,
+    parser.add_argument("--restore", type=bool, default=True,
                         help="Set this to False to do a fresh training")
     parser.add_argument("--summary_interval", type=int, default=1000,
                         help="Steps between running summary ops")
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                         help="Steps between writing checkpoints")
     parser.add_argument("--eval_interval", type=int, default=1000, # Was 10000
                         help="Steps between eval on test data")
-    parser.add_argument("--tacotron_train_steps", type=int, default=100000, # Was 100000
+    parser.add_argument("--tacotron_train_steps", type=int, default=200000, # Was 100000
                         help="total number of tacotron training steps")
     parser.add_argument("--tf_log_level", type=int, default=1, help="Tensorflow C++ log level.")
 

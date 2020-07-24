@@ -232,6 +232,11 @@ def _build_mel_basis(hparams):
     return librosa.filters.mel(hparams.sample_rate, hparams.n_fft, n_mels=hparams.num_mels,
                                fmin=hparams.fmin, fmax=hparams.fmax)
 
+def _build_mel_basis_tensorflow(hparams):
+    assert hparams.fmax <= hparams.sample_rate // 2
+    return tf.convert_to_tensor(librosa.filters.mel(hparams.sample_rate, hparams.n_fft, n_mels=hparams.num_mels,
+                               fmin=hparams.fmin, fmax=hparams.fmax), tf.float32)
+
 def _amp_to_db(x, hparams):
     min_level = np.exp(hparams.min_level_db / 20 * np.log(10))
     return 20 * np.log10(np.maximum(min_level, x))

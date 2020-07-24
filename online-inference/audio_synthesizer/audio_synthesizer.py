@@ -13,7 +13,7 @@ import numpy as np
 import cv2
 from shutil import copy
 from glob import glob
-
+False
 
 ##############
 # Parameters #
@@ -134,10 +134,10 @@ sender_client.loop_start()
 receiver_client.subscribe(args.sub_topic, args.sub_qos)
 
 class Generator(object):
-   def __init__(self):
+   def __init__(self, args):
       super(Generator, self).__init__()
       self.synthesizer = sif.Synthesizer(verbose=False)
-      self.synthesizer.load(cpu_based=cpu_based_synthesis)
+      self.synthesizer.load(cpu_based=args.cpu_based_synthesis)
 
       self.mel_batches_per_wav_file = 2
       self.mel_batch = None
@@ -189,7 +189,7 @@ class Generator(object):
 
 
 # Initialize audio generator
-wav_generator = Generator()
+wav_generator = Generator(args)
 
 # Wait for messages until disconnected by system interrupt
 audio_sample_num = 1

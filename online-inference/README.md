@@ -22,6 +22,25 @@ Credits for the face detection model go to the MTCNN Face Detection demo linked 
 The referenced demo references source code of [NVIDIA/TensorRT](https://github.com/NVIDIA/TensorRT) samples to develop most of the demos in its repository. Those NVIDIA samples are under [Apache License 2.0](https://github.com/NVIDIA/TensorRT/blob/master/LICENSE).
 
 
+## Fake Face Detector
+
+To help with the development of the audio synthesizer (so there's nothing dependent on the actual face detector), we had the additional fake face detector for taking data preprocessed from YouTube videos (via the Lip2Wav's original preprocess.py script), which can be used to standardize input data and emulate the actual face detector logic. 
+
+### Running the Container
+
+All necessary code for the fake face detection lives in `fake_face_detector/`, including the Dockerfile used to construct this container.
+
+The following docker commands can be used to create and run everything from the `face_Detector/` folder:
+```
+> docker build -t ffd_jlr -f Dockerfile.fakefacedetector .                                                            # to build the image
+> docker run -ti --name ffd1 -e QOS=2 -e SOURCE_DIR="./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/" ffd_jlr   # to run the container with a single cut of data
+> > docker run -ti --name ffd1 -e QOS=2 -e SOURCE_DIR="./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/" ffd_jlr # to run the container with multiple cuts of data (warning that this takes a while to process)
+> docker container stop ffd1 && docker container rm ffd1                                                              # to stop & remove container
+```
+
+Be sure to have the preprocessed dataset in the `fake_face_detector/` directory, as it will search for the `SOURCE_DIR` relative to this location.
+
+
 ## Running the Synthesizer
 
 ### Running the Container

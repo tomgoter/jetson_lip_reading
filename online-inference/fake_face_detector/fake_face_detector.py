@@ -80,7 +80,7 @@ for (cutdir, dirnum) in cutdirs_and_nums:
       # extract & publish faces
       face = cv2.imread(fname, cv2.IMREAD_COLOR)
       if np.shape(face) == ():
-         print("continuing? fname = " + str(fname) + ", " + str(num))
+         print("continuing due to invalid file ==> fname = " + str(fname) + ", " + str(num))
          continue
       print("fname = " + str(fname) + ", " + str(num))
       rc, png = cv2.imencode('.png', face)

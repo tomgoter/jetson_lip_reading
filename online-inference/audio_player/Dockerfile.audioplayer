@@ -5,9 +5,12 @@ RUN apt install -y python3 python3-pip
 RUN apt-get install -y python3-gi gstreamer-1.0
 RUN pip3 install paho-mqtt playsound
 RUN pip3 install soundfile
+RUN pip3 install scipy
 
 ENV QOS 1
-ENV SUB_HOST "10.0.0.34"
+ENV SUB_HOST "10.0.0.45"
 ENV SUB_TOPIC "jetson/audio"
 
  docker run -ti --name ap1 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/Dataset/mini_sample/test_results/wavs/YouTube-chem-preproc_ffd_cpu-based-inf/:/wavs/ --device /dev/snd ubuntu bash
+
+ python3 audio_player.py "jetson/audio-receiver" "10.0.0.45" 1883 2 "jetson/audio"

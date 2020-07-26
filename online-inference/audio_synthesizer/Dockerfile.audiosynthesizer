@@ -48,8 +48,8 @@ EXPOSE 1883
 
 # define environment variables for command line & set defaults
 ENV QOS 1
-ENV PUB_HOST "10.0.0.34"
-ENV SUB_HOST "10.0.0.34"
+ENV PUB_HOST "10.0.0.45"
+ENV SUB_HOST "10.0.0.45"
 ENV PUB_TOPIC "jetson/audio"
 ENV SUB_TOPIC "jetson/faces"
 

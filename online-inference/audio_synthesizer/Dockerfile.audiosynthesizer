@@ -32,12 +32,15 @@ RUN apt install -y ffmpeg
 # for profiling (can remove)
 RUN pip3 install profilehooks
 
+# Add Vim for Tom
+RUN apt install -y vim
+
 ###############################
 
 # Copy over files
 #RUN mkdir /audio_synthesizer
 #RUN cd /audio_synthesizer
-#WORKDIR /audio_synthesizer
+WORKDIR /audio_synthesizer
 #ADD ./ /audio_synthesizer/
 
 #############

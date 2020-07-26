@@ -24,7 +24,6 @@ import io
 parser = argparse.ArgumentParser()
 
 # Synthesizer params
-parser.add_argument("-d", "--data_root", help="Speaker folder path", required=True)
 parser.add_argument("-r", "--results_root", help="Speaker folder path", required=True)
 parser.add_argument("--checkpoint", help="Path to trained checkpoint", required=True)
 parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)

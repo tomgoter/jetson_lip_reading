@@ -1,12 +1,12 @@
+import sys
 import paho.mqtt.client as mqtt
 import time
-import sys
 import os
 import queue
 
 import numpy as np
 
-#from playsound import playsound
+from playsound import playsound
 
 import io
 from scipy.io import wavfile
@@ -14,6 +14,13 @@ from scipy.io import wavfile
 # https://stackoverflow.com/questions/52369925/creating-wav-file-from-bytes
 #import io
 #import soundfile as sf
+
+# https://stackoverflow.com/questions/43941716/how-to-play-mp3-from-bytes
+
+#from pydub import AudioSegment
+#from pydub.playback import play
+
+from pygame import mixer, time
 
 # Subscribing client params
 SUBSCRIBING_CLIENT_NAME = str(sys.argv[1])
@@ -64,6 +71,9 @@ client.connect(SUBSCRIBING_MQTT_HOST, SUBSCRIBING_MQTT_PORT)
 client.loop_start()
 client.subscribe(SUBSCRIBE_TO_TOPIC, SUBSCRIBING_QOS)
 
+#mixer.pre_init(44100, -16, 2, 2048)
+#mixer.init()
+
 # Wait for messages until disconnected by system interrupt
 wav_num = 0
 while True:
@@ -71,8 +81,16 @@ while True:
       wav_bytes = wav_queue.get(block=True)
       rate, data = wavfile.read(io.BytesIO(wav_bytes))
 
-      outfile = '{}{}.wav'.format("./tmp/", wav_num)
-      wavfile.write(outfile, rate, data.astype(np.int16))
+      #song = AudioSegment.from_file(io.BytesIO(wav_bytes), format="wav")
+      #play(song)
+
+      #outfile = '{}{}.wav'.format("./tmp/", wav_num)
+      #wavfile.write(outfile, rate, data.astype(np.int16))
       
+      #sound = mixer.Sound(wav_bytes)
+      #audio = sound.play()
+      #while audio.get_busy():
+      #   time.Clock().tick(10)
+
       wav_num += 1
       #data, samplerate = sf.read(io.BytesIO(wav_bytes))

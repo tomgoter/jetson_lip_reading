@@ -17,8 +17,8 @@ from scipy.io import wavfile
 
 # https://stackoverflow.com/questions/43941716/how-to-play-mp3-from-bytes
 
-#from pydub import AudioSegment
-#from pydub.playback import play
+from pydub import AudioSegment
+from pydub.playback import play
 
 from pygame import mixer, time
 
@@ -74,6 +74,12 @@ client.subscribe(SUBSCRIBE_TO_TOPIC, SUBSCRIBING_QOS)
 #mixer.pre_init(44100, -16, 2, 2048)
 #mixer.init()
 
+def save_wav(byte_data, rate, wav_num):
+   outfile = '{}{}.wav'.format("./tmp/", wav_num)
+   wavfile.write(outfile, rate, byte_data.astype(np.int16))
+   return outfile
+
+
 # Wait for messages until disconnected by system interrupt
 wav_num = 0
 while True:
@@ -81,16 +87,29 @@ while True:
       wav_bytes = wav_queue.get(block=True)
       rate, data = wavfile.read(io.BytesIO(wav_bytes))
 
-      #song = AudioSegment.from_file(io.BytesIO(wav_bytes), format="wav")
-      #play(song)
-
-      #outfile = '{}{}.wav'.format("./tmp/", wav_num)
-      #wavfile.write(outfile, rate, data.astype(np.int16))
       
-      #sound = mixer.Sound(wav_bytes)
-      #audio = sound.play()
-      #while audio.get_busy():
-      #   time.Clock().tick(10)
+      # saving the wav file and playing -- works great, just theoretically slower
+      outfile = save_wav(data, rate, wav_num)
+      playsound(outfile)
+      
+
+      '''
+      # pydub -- had issues with ffprobe errors
+      song = AudioSegment.from_file(io.BytesIO(wav_bytes), format="wav")
+      play(song)
+      '''
+
+      '''
+      # pygame -- sounds like crap...
+      sound = mixer.Sound(wav_bytes)
+      audio = sound.play()
+      while audio.get_busy():
+         time.Clock().tick(10)
+      '''
+
+      '''
+      # soundfile -- can't get import to work
+      data, samplerate = sf.read(io.BytesIO(wav_bytes))
+      '''
 
       wav_num += 1
-      #data, samplerate = sf.read(io.BytesIO(wav_bytes))

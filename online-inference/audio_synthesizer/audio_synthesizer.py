@@ -26,7 +26,7 @@ parser.add_argument("-d", "--data_root", help="Speaker folder path", required=Tr
 parser.add_argument("-r", "--results_root", help="Speaker folder path", required=True)
 parser.add_argument("--checkpoint", help="Path to trained checkpoint", required=True)
 parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
-parser.add_argument("--wav_action", help="What to do with the generated wav files", type=str, required=True, choices=["save_file", "forward_to_player"])
+parser.add_argument("--wav_action", help="What to do with the generated wav files", type=str, required=True, choices=["save", "forward"])
 
 # Subscribing client params
 parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True)
@@ -142,7 +142,7 @@ class Generator(object):
    def generate_wav(self):
       if (self.num_mels != self.mel_batches_per_wav_file):
          print("not generating wav file yet...")
-         return None:
+         return None
       else:
          print("Generating wav file of mel spectrograms")
          wav = self.synthesizer.griffin_lim(self.mel_batch)
@@ -152,9 +152,9 @@ class Generator(object):
          self.mel_batch = None
          return wav
 
-   def genereate_and_save_wav(self, root_dir, wav_num):
-      wav = generate_wav()
-      if (wav == None):
+   def generate_and_save_wav(self, root_dir, wav_num):
+      wav = self.generate_wav()
+      if (wav is None):
          return
       else:
          print("saving wav file")
@@ -162,13 +162,13 @@ class Generator(object):
          sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
 
    def generate_and_forward_wav(self, mqtt_client, args):
-      wav = generate_wav()
-      if (wav == None):
+      wav = self.generate_wav()
+      if (wav is None):
          return
       else:
          print("forwarding wav file via MQTT")
          message = wav.tobytes()
-         mqtt_client.publish(args.pub_topic, payload=message, qos=pub_qos)
+         mqtt_client.publish(args.pub_topic, payload=message, qos=args.pub_qos)
 
 
    def generate_mel_spec(self, images):
@@ -208,13 +208,13 @@ while True:
       # Process frames and generate synthesized audio
       try:
          start = time.time()
-         generator.convert_to_mel_spec(faces_to_process)
-         print("Converted " + str(num_frames) + " frames to mel spectrogram in " + str(outfile) + ", duration: "+ str((time.time() - start) * 1000) + " ms")
+         generator.generate_mel_spec(faces_to_process)
+         print("Converted " + str(num_frames) + " frames to mel spectrogram, duration: "+ str((time.time() - start) * 1000) + " ms")
 
-         if (args.wav_action == "save_wav"):
+         if (args.wav_action == "save"):
             generator.generate_and_save_wav(WAVS_ROOT, audio_sample_num)
-         elif (args.wav_action == "forward_wav"):
-            generator.generate_and_forward_wav()
+         elif (args.wav_action == "forward"):
+            generator.generate_and_forward_wav(sender_client, args)
 
          audio_sample_num += 1
       except KeyboardInterrupt:

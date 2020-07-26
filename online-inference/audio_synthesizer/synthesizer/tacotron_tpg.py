@@ -46,7 +46,7 @@ class Tacotron2:
             self.alignments = self.model.tower_alignments
             #self.stop_token_prediction = self.model.tower_stop_token_prediction
             self.targets = targets
-            self.mel_transposed = tf.transpose(tf.reshape(self.mel_outputs[0], [240,80]))
+            self.mel_transposed = tf.transpose(tf.reshape(self.mel_outputs[0], [hparams.mel_step_size,hparams.num_mels]))
             self.wav_output = audio.inv_mel_spectrogram_tensorflow(self.mel_transposed , hparams)
             print(self.wav_output)
         self.gta = gta

@@ -133,9 +133,9 @@ sender_client.loop_start()
 receiver_client.subscribe(args.sub_topic, args.sub_qos)
 
 class Generator(object):
-   def __init__(self, args):
+   def __init__(self, cpu_based):
       super(Generator, self).__init__()
-      self.cpu_based = args.method_of_synthesis == "cpu_based"
+      self.cpu_based = cpu_based
 
       self.synthesizer = sif.Synthesizer(verbose=False)
       self.synthesizer.load(cpu_based=self.cpu_based)
@@ -228,14 +228,14 @@ class Generator(object):
 
 
 # Initialize audio generator
-generator = Generator()
+generator = Generator(cpu_based = args.method_of_synthesis == "cpu_based")
 
 # Wait for messages until disconnected by system interrupt
 print("\n########################n Ready to receive faces \n########################n")
 audio_sample_num = 1
 num_frames = sif.hparams.T
 while True:
-   print("queue size = " + str(face_queue.qsize()))
+   # print("queue size = " + str(face_queue.qsize()))
 
    # Check to see if queue has enough frames
    if (face_queue.qsize() >= num_frames):

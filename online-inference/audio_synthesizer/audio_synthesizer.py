@@ -26,6 +26,7 @@ parser.add_argument("-d", "--data_root", help="Speaker folder path", required=Tr
 parser.add_argument("-r", "--results_root", help="Speaker folder path", required=True)
 parser.add_argument("--checkpoint", help="Path to trained checkpoint", required=True)
 parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
+parser.add_argument("--wav_action", help="What to do with the generated wav files", type=str, required=True, choices=["save_file", "forward_to_player"])
 
 # Subscribing client params
 parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True)
@@ -35,13 +36,11 @@ parser.add_argument("--sub_qos", help="The MQTT quality of service for the subsc
 parser.add_argument("--sub_topic", help="The MQTT topic the subscribing client should subscribe to", type=str, required=True)
 
 # Publishing client params
-'''
 parser.add_argument("--pub_client_name", help="The name of the MQTT publishing client", type=str, required=True)
 parser.add_argument("--pub_mqtt_host", help="The MQTT host for the publishing client", type=str, required=True)
 parser.add_argument("--pub_mqtt_port", help="The MQTT port for the publishing client", type=int, required=True)
 parser.add_argument("--pub_qos", help="The MQTT quality of service for the publishing client", type=int, required=True)
 parser.add_argument("--pub_topic", help="The MQTT topic the publishing client should publish to", type=str, required=True)
-'''
 
 args = parser.parse_args()
 
@@ -115,7 +114,7 @@ receiver_client.on_message = on_message
 receiver_client.on_subscribe = on_subscribe
 receiver_client.connect(args.sub_mqtt_host, args.sub_mqtt_port)
 
-'''
+
 # Set up sender client & callbacks
 sender_client = mqtt.Client(args.pub_client_name)
 #sender_client.on_log = on_log
@@ -123,13 +122,11 @@ sender_client.on_connect = on_connect
 sender_client.on_disconnect = on_disconnect
 #sender_client.on_publish = on_publish
 sender_client.connect(args.pub_mqtt_host, args.pub_mqtt_port)
-'''
+
 
 # start clients & subscribe receiver client to topic
 receiver_client.loop_start()
-'''
 sender_client.loop_start()
-'''
 receiver_client.subscribe(args.sub_topic, args.sub_qos)
 
 class Generator(object):
@@ -142,7 +139,39 @@ class Generator(object):
       self.mel_batch = None
       self.num_mels = 0
 
-   def convert_to_wav_and_save(self, images, outfile):
+   def generate_wav(self):
+      if (self.num_mels != self.mel_batches_per_wav_file):
+         print("not generating wav file yet...")
+         return None:
+      else:
+         print("Generating wav file of mel spectrograms")
+         wav = self.synthesizer.griffin_lim(self.mel_batch)
+         wav *= 32767 / max(0.01, np.max(np.abs(wav)))
+
+         self.num_mels = 0
+         self.mel_batch = None
+         return wav
+
+   def genereate_and_save_wav(self, root_dir, wav_num):
+      wav = generate_wav()
+      if (wav == None):
+         return
+      else:
+         print("saving wav file")
+         outfile = '{}{}.wav'.format(root_dir, wav_num)
+         sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
+
+   def generate_and_forward_wav(self, mqtt_client, args):
+      wav = generate_wav()
+      if (wav == None):
+         return
+      else:
+         print("forwarding wav file via MQTT")
+         message = wav.tobytes()
+         mqtt_client.publish(args.pub_topic, payload=message, qos=pub_qos)
+
+
+   def generate_mel_spec(self, images):
       # Resize images
       images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
       images = np.asarray(images) / 255.
@@ -150,7 +179,7 @@ class Generator(object):
       # Synthesize Spectrogram
       mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]         
          
-      # collect batches of mel spectrograms before saving to wav file
+      # Concatenate batches of mel spectrograms
       if self.num_mels == 0:
          self.mel_batch = mel_spec
          self.num_mels = 1
@@ -158,23 +187,8 @@ class Generator(object):
          self.mel_batch = np.concatenate((self.mel_batch, mel_spec[:, sif.hparams.mel_overlap:]), axis=1)
          self.num_mels += 1
 
-      if (self.num_mels == self.mel_batches_per_wav_file):
-         print("$$$$ saving wav file of mel spectrograms")
-
-         # Synthesize Audio based on spectrogram
-         wav = self.synthesizer.griffin_lim(self.mel_batch)
-
-         # Save synthesized wav to outputfile location
-         sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
-
-         self.num_mels = 0
-         self.mel_batch = None
-         print("$$$$$$$$$ saved wav file")
-      else:
-         print("$$$$ did not save wav file yet...")
-
 # Initialize audio generator
-wav_generator = Generator()
+generator = Generator()
 
 # Wait for messages until disconnected by system interrupt
 audio_sample_num = 1
@@ -193,11 +207,15 @@ while True:
 
       # Process frames and generate synthesized audio
       try:
-         outfile = '{}{}.wav'.format(WAVS_ROOT, audio_sample_num)
          start = time.time()
-         wav_generator.convert_to_wav_and_save(faces_to_process, outfile)
-         print("Converted " + str(num_frames) + " frames to wav in " + str(outfile) +
-            ", duration: "+ str((time.time() - start) * 1000) + " ms")
+         generator.convert_to_mel_spec(faces_to_process)
+         print("Converted " + str(num_frames) + " frames to mel spectrogram in " + str(outfile) + ", duration: "+ str((time.time() - start) * 1000) + " ms")
+
+         if (args.wav_action == "save_wav"):
+            generator.generate_and_save_wav(WAVS_ROOT, audio_sample_num)
+         elif (args.wav_action == "forward_wav"):
+            generator.generate_and_forward_wav()
+
          audio_sample_num += 1
       except KeyboardInterrupt:
          exit(0)

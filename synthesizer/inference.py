@@ -78,7 +78,7 @@ class Synthesizer:
         if not self.is_loaded():
             self.load()
         
-        specs, alignments = self._model.my_synthesize(faces)
+        specs, alignments = self._model.my_synthesize(faces, hparams)
         
         return (specs, alignments) if return_alignments else specs
 
@@ -152,5 +152,6 @@ class Synthesizer:
         if use_tf:
             return audio.inv_preemphasis(audio.inv_mel_spectrogram_tensorflow(mel, hparams))
         else:
+            print("Not using tensorflow")
             return audio.inv_mel_spectrogram(mel, hparams)
     

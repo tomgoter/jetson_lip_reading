@@ -83,13 +83,14 @@ def inv_linear_spectrogram(linear_spectrogram, hparams):
 
 def inv_mel_spectrogram(mel_spectrogram, hparams):
     """Converts mel spectrogram to waveform using librosa"""
-    #print(f"Shape of Mel spectrogram is {mel_spectrogram.shape}")
+    print(hparams.mel_step_size)
+    print(f"Shape of Mel spectrogram is {mel_spectrogram.shape}")
     if hparams.signal_normalization:
         D = _denormalize(mel_spectrogram, hparams)
     else:
         D = mel_spectrogram
     S = _mel_to_linear(_db_to_amp(D + hparams.ref_level_db), hparams)  # Convert back to linear
-    #print(f"Shape of linear spectrogram is {S.shape}")
+    print(f"Shape of linear spectrogram is {S.shape}")
     if hparams.use_lws:
         processor = _lws_processor(hparams)
         D = processor.run_lws(S.astype(np.float64).T ** hparams.power)
@@ -235,7 +236,7 @@ def _mel_to_linear_tensorflow(mel_spectrogram, hparams):
     _inv_mel_basis = tf.linalg.pinv(_build_mel_basis_tensorflow(hparams))
     #print(mel_spectrogram)
     #print(_inv_mel_basis)
-    mel_spectrogram= tf.reshape(mel_spectrogram, [80,240])   
+    mel_spectrogram= tf.reshape(mel_spectrogram, [hparams.num_mels,hparams.mel_step_size])   
     x = tf.matmul(_inv_mel_basis, mel_spectrogram)
     #print(tf.shape(x))
     return tf.math.maximum(tf.ones(tf.shape(x)) * 1e-10, x)

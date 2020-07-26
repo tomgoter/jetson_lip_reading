@@ -44,7 +44,7 @@ def get_image_list(split, data_root):
     with open(os.path.join(data_root, '{}.txt'.format(split))) as vidlist:
         for vid_id in vidlist:
             vid_id = vid_id.strip()
-            filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', vid_id, '*/*.jpg'))))
+            filelist.extend(list(glob(os.path.join(data_root, args.subfolder, vid_id, '*/*.jpg'))))
     return filelist
 
 
@@ -99,6 +99,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', "--data_root", help="Speaker folder path", required=True)
     parser.add_argument('-r', "--results_root", help="Speaker folder path", required=True)
+    parser.add_argument('-s', "--subfolder", help="Data subfolder", required=True)
     parser.add_argument('--checkpoint', help="Path to trained checkpoint", required=True)
     parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
     args = parser.parse_args()
@@ -131,7 +132,7 @@ if __name__ == '__main__':
 
     g = Generator()
     template = 'ffmpeg -y -loglevel panic -ss {} -i {} -to {} -strict -2 {}'
-    print(videos)
+    
     for vid in tqdm(videos):
         vidpath = vid + '/'
         for (ss, es), images in tqdm(contiguous_window_generator(vidpath)):

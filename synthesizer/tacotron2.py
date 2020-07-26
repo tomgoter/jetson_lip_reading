@@ -25,9 +25,9 @@ class Tacotron2:
         input_lengths = tf.placeholder(tf.int32, shape=(None,), name="input_lengths"),
         targets = tf.placeholder(tf.float32, shape=(None, hparams.mel_step_size, hparams.num_mels), 
                name="mel_targets"),
-
         split_infos = tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), 
                name="split_infos"),
+                   
 
         # SV2TTS
         speaker_embeddings = tf.placeholder(tf.float32, shape=(None, 256), 
@@ -38,7 +38,10 @@ class Tacotron2:
                 self.model.initialize(inputs, input_lengths, speaker_embeddings, targets, gta=gta,
                                       split_infos=split_infos)
             else:
-                self.model.initialize(inputs[0], input_lengths[0], speaker_embeddings[0], split_infos=split_infos[0])
+                self.model.initialize(inputs[0],
+                                      input_lengths[0],
+                                      speaker_embeddings[0],
+                                      split_infos=split_infos[0])
             
             self.mel_outputs = self.model.tower_mel_outputs
             self.linear_outputs = self.model.tower_linear_outputs if (hparams.predict_linear and not gta) else None
@@ -76,7 +79,7 @@ class Tacotron2:
         saver.restore(self.session, hparams.eval_ckpt)
         print ("LOADED MODEL")
     
-    def my_synthesize(self, seqs):
+    def my_synthesize(self, seqs, hparams):
         """
         Lighter synthesis function that directly returns the mel spectrograms.
         """
@@ -113,7 +116,7 @@ class Tacotron2:
                 # If no token is generated, we simply do not trim the output
                 continue
         '''
-        
+       # mels = [mel[:hparams.mel_step_size,:] for mel in mels]
         return [mel.T for mel in mels], alignments
     
     def synthesize(self, texts, basenames, out_dir, log_dir, mel_filenames, embed_filenames):

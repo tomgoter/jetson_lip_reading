@@ -2,17 +2,18 @@ import paho.mqtt.client as mqtt
 import time
 import sys
 import os
+import queue
 
 import numpy as np
 
-from playsound import playsound
+#from playsound import playsound
 
 import io
 from scipy.io import wavfile
 
 # https://stackoverflow.com/questions/52369925/creating-wav-file-from-bytes
-import io
-import soundfile as sf
+#import io
+#import soundfile as sf
 
 # Subscribing client params
 SUBSCRIBING_CLIENT_NAME = str(sys.argv[1])
@@ -68,7 +69,7 @@ wav_num = 0
 while True:
    if (wav_queue.qsize() > 0):
       wav_bytes = wav_queue.get(block=True)
-      rate, data = wavfile.read(wav_bytes)
+      rate, data = wavfile.read(io.BytesIO(wav_bytes))
 
       outfile = '{}{}.wav'.format("./tmp/", wav_num)
       wavfile.write(outfile, rate, data.astype(np.int16))

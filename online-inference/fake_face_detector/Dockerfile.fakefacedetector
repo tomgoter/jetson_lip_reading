@@ -15,7 +15,7 @@ EXPOSE 1883
 
 # Define environment variables for command line & set defaults
 ENV QOS 1
-ENV PUB_HOST "10.0.0.34"
+ENV PUB_HOST "10.0.0.45"
 ENV PUB_TOPIC "jetson/faces"
 ENV SOURCE_DIR "./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/"
 

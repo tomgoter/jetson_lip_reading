@@ -50,8 +50,8 @@ All necessary code for face detection lives in `audio_synthesizer/`, including t
 The following docker commands can be used to create and run everything from the `audio_synthesizer/` folder:
 ```
 > docker build -t as_jlr -f Dockerfile.audiosynthesizer .                       # to build the image
-> docker run -ti --name as1 -e QOS=2 as_jlr                                     # to start the container
-> docker run -ti --name as1 -e QOS=2 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/:/audio_synthesizer/ as_jlr bash              
+> docker run -ti --name as1 -e QOS=2 --privileged as_jlr                        # to start the container
+> docker run -ti --name as1 -e QOS=2 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/:/audio_synthesizer/ --privileged as_jlr bash              
 
 > docker container stop as1 && docker container rm as1                          # to stop & remove container
 ```

@@ -12,7 +12,7 @@
 	"decoder_layers" : 2,
 	"decoder_lstm_units" : 1024,
 
-     "max_iters":60,
+     "max_iters":120,
     "tacotron_teacher_forcing_start_decay" : 20000,
     "tacotron_teacher_forcing_decay_steps" : 80000,
 

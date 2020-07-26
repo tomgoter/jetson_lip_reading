@@ -172,7 +172,7 @@ hparams = HParams(
     ###########################################################################################################################################
     
     # Tacotron
-    outputs_per_step=2, # Was 1
+    outputs_per_step=1, # Was 1
     # number of frames to generate at each decoding step (increase to speed up computation and 
     # allows for higher batch size, decreases G&L audio quality)
     stop_at_any=True,

@@ -13,6 +13,8 @@ import numpy as np
 import cv2
 from shutil import copy
 from glob import glob
+from scipy.io import wavfile
+import io
 
 
 ##############
@@ -155,20 +157,23 @@ class Generator(object):
    def generate_and_save_wav(self, root_dir, wav_num):
       wav = self.generate_wav()
       if (wav is None):
-         return
+         return # not ready yet
       else:
          print("saving wav file")
          outfile = '{}{}.wav'.format(root_dir, wav_num)
          sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
 
+   # Inspiration from here: https://gist.github.com/hadware/8882b980907901426266cb07bfbfcd20
    def generate_and_forward_wav(self, mqtt_client, args):
       wav = self.generate_wav()
       if (wav is None):
-         return
+         return # not ready yet
       else:
          print("forwarding wav file via MQTT")
-         message = wav.tobytes()
-         mqtt_client.publish(args.pub_topic, payload=message, qos=args.pub_qos)
+         byte_io = io.BytesIO(bytes())
+         wavfile.write(byte_io, sif.hparams.sample_rate, wav)
+         wav_bytes = byte_io.read()
+         mqtt_client.publish(args.pub_topic, payload=wav_bytes, qos=args.pub_qos)
 
 
    def generate_mel_spec(self, images):

@@ -3,7 +3,12 @@ import time
 import sys
 import os
 
+import numpy as np
+
 from playsound import playsound
+
+import io
+from scipy.io import wavfile
 
 # https://stackoverflow.com/questions/52369925/creating-wav-file-from-bytes
 import io
@@ -59,7 +64,14 @@ client.loop_start()
 client.subscribe(SUBSCRIBE_TO_TOPIC, SUBSCRIBING_QOS)
 
 # Wait for messages until disconnected by system interrupt
+wav_num = 0
 while True:
    if (wav_queue.qsize() > 0):
       wav_bytes = wav_queue.get(block=True)
-      data, samplerate = sf.read(io.BytesIO(wav_bytes))
+      rate, data = wavfile.read(wav_bytes)
+
+      outfile = '{}{}.wav'.format("./tmp/", wav_num)
+      wavfile.write(outfile, rate, data.astype(np.int16))
+      
+      wav_num += 1
+      #data, samplerate = sf.read(io.BytesIO(wav_bytes))

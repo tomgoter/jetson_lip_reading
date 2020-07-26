@@ -29,6 +29,7 @@ parser.add_argument("-r", "--results_root", help="Speaker folder path", required
 parser.add_argument("--checkpoint", help="Path to trained checkpoint", required=True)
 parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
 parser.add_argument("--wav_action", help="What to do with the generated wav files", type=str, required=True, choices=["save", "forward"])
+parser.add_argument("--method_of_synthesis", help="The method of synthesis to used (cpu-based or gpu-based) to generate wav files", type=str, required=True, choices=["cpu", "gpu"])
 
 # Subscribing client params
 parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True)
@@ -132,16 +133,45 @@ sender_client.loop_start()
 receiver_client.subscribe(args.sub_topic, args.sub_qos)
 
 class Generator(object):
-   def __init__(self):
+   def __init__(self, args):
       super(Generator, self).__init__()
-      self.synthesizer = sif.Synthesizer(verbose=False)
-      self.synthesizer.load()
+      self.cpu_based = args.method_of_synthesis == "cpu_based"
 
-      self.mel_batches_per_wav_file = 2
+      self.synthesizer = sif.Synthesizer(verbose=False)
+      self.synthesizer.load(cpu_based=self.cpu_based)
+
+      # for CPU-based approach
+      self.mel_batches_per_wav_file = 1
       self.mel_batch = None
       self.num_mels = 0
 
-   def generate_wav(self):
+   def resize_and_nparrize_images(self, images):
+      images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
+      images = np.asarray(images) / 255.
+      return images
+
+   def generate_mel_spec(self, images):
+      # Synthesize Spectrogram
+      mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]         
+         
+      # Concatenate batches of mel spectrograms (to get longer wav file samples)
+      if self.num_mels == 0:
+         self.mel_batch = mel_spec
+         self.num_mels = 1
+      else:
+         self.mel_batch = np.concatenate((self.mel_batch, mel_spec[:, sif.hparams.mel_overlap:]), axis=1)
+         self.num_mels += 1
+
+   @timecall(immediate=True)
+   def generate_wav_cpu_based(self, images):
+      '''
+      CPU-based method of converting batches of face images to wav files
+      '''
+      # Generate mel spectrogram first
+      images = self.resize_and_nparrize_images(images)
+      self.generate_mel_spec(images)
+
+      # Synthesize wav file from spectrogram when ready
       if (self.num_mels != self.mel_batches_per_wav_file):
          print("not generating wav file yet...")
          return None
@@ -154,8 +184,26 @@ class Generator(object):
          self.mel_batch = None
          return wav
 
-   def generate_and_save_wav(self, root_dir, wav_num):
-      wav = self.generate_wav()
+   @timecall(immediate=True)
+   def generate_wav_gpu_based(self, images):
+      '''
+      GPU-based method of converting batches of face images to wav files
+      '''
+      images = self.resize_and_nparrize_images(images)
+      wav = self.synthesizer.synthesize_wavs(images)
+      return wav
+
+   def generate_wav(self, images):
+      if (self.cpu_based):
+         return self.generate_wav_cpu_based(images)
+      else:
+         return self.generate_wav_gpu_based(images)
+
+   def generate_wav_and_save(self, images, root_dir, wav_num):
+      '''
+      Generates wav files from batches of images and saves the wav to an output file
+      '''
+      wav = self.generate_wav(images)
       if (wav is None):
          return # not ready yet
       else:
@@ -164,8 +212,11 @@ class Generator(object):
          sif.audio.save_wav(wav, outfile, sr=sif.hparams.sample_rate)
 
    # Inspiration from here: https://gist.github.com/hadware/8882b980907901426266cb07bfbfcd20
-   def generate_and_forward_wav(self, mqtt_client, args):
-      wav = self.generate_wav()
+   def generate_wav_and_forward(self, images, mqtt_client, topic, qos):
+      '''
+      Generates wav files from batches of images and forwards them via MQTT
+      '''
+      wav = self.generate_wav(images)
       if (wav is None):
          return # not ready yet
       else:
@@ -173,32 +224,17 @@ class Generator(object):
          byte_io = io.BytesIO(bytes())
          wavfile.write(byte_io, sif.hparams.sample_rate, wav)
          wav_bytes = byte_io.read()
-         mqtt_client.publish(args.pub_topic, payload=wav_bytes, qos=args.pub_qos)
+         mqtt_client.publish(topic, payload=wav_bytes, qos=qos)
 
-
-   def generate_mel_spec(self, images):
-      # Resize images
-      images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
-      images = np.asarray(images) / 255.
-
-      # Synthesize Spectrogram
-      mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]         
-         
-      # Concatenate batches of mel spectrograms
-      if self.num_mels == 0:
-         self.mel_batch = mel_spec
-         self.num_mels = 1
-      else:
-         self.mel_batch = np.concatenate((self.mel_batch, mel_spec[:, sif.hparams.mel_overlap:]), axis=1)
-         self.num_mels += 1
 
 # Initialize audio generator
 generator = Generator()
 
 # Wait for messages until disconnected by system interrupt
+print("\n########################n Ready to receive faces \n########################n")
 audio_sample_num = 1
+num_frames = sif.hparams.T
 while True:
-   num_frames = sif.hparams.T
    print("queue size = " + str(face_queue.qsize()))
 
    # Check to see if queue has enough frames
@@ -210,16 +246,13 @@ while True:
       while (len(faces_to_process) != num_frames):
          faces_to_process.append(face_queue.get(block=True))
 
-      # Process frames and generate synthesized audio
+      # Process frames and generate synthesized audio as wav file data
+      # Save as wav file or forward via mqtt
       try:
-         start = time.time()
-         generator.generate_mel_spec(faces_to_process)
-         print("Converted " + str(num_frames) + " frames to mel spectrogram, duration: "+ str((time.time() - start) * 1000) + " ms")
-
          if (args.wav_action == "save"):
-            generator.generate_and_save_wav(WAVS_ROOT, audio_sample_num)
+            generator.generate_and_save_wav(faces_to_process, WAVS_ROOT, audio_sample_num)
          elif (args.wav_action == "forward"):
-            generator.generate_and_forward_wav(sender_client, args)
+            generator.generate_and_forward_wav(faces_to_process, sender_client, args.pub_topic, args.pub_qos)
 
          audio_sample_num += 1
       except KeyboardInterrupt:

@@ -1,4 +1,6 @@
-from synthesizer.tacotron2 import Tacotron2
+from synthesizer.tacotron2 import Tacotron2 # CPU-based
+from synthesizer.tacotron_tpg import Tacotron2 as Tacotron_tpg # GPU-Based
+
 from synthesizer.hparams import hparams
 from multiprocess.pool import Pool  # You're free to use either one
 #from multiprocessing import Pool   # 
@@ -32,7 +34,9 @@ class Synthesizer:
         self._low_mem = low_mem
         
         # Prepare the model
-        self._model = None  # type: Tacotron2
+        self._model_tacotron2 = None  # type: Tacotron2
+        self._model_tacotron_tpg = None # type: Tacotron_tpg
+        
         #checkpoint_state = tf.train.get_checkpoint_state(checkpoints_dir)
         #if checkpoint_state is None:
         #    raise Exception("Could not find any synthesizer weights under %s" % checkpoints_dir)
@@ -46,13 +50,16 @@ class Synthesizer:
         #    step = int(self.checkpoint_fpath[self.checkpoint_fpath.rfind('-') + 1:])
         #    print("Found synthesizer \"%s\" trained to step %d" % (model_name, step))
      
-    def is_loaded(self):
+    def is_loaded(self, cpu_based=True):
         """
         Whether the model is loaded in GPU memory.
         """
-        return self._model is not None
+        if (cpu_based):
+            return self._model_tacotron2 is not None
+        else:
+            return self._model_tacotron_tpg is not None
     
-    def load(self):
+    def load(self, cpu_based=True):
         """
         Effectively loads the model to GPU memory given the weights file that was passed in the
         constructor.
@@ -60,13 +67,14 @@ class Synthesizer:
         if self._low_mem:
             raise Exception("Cannot load the synthesizer permanently in low mem mode")
         tf.reset_default_graph()
-        self._model = Tacotron2(None, hparams)
+        if (cpu_based):
+            self._model_tacotron2 = Tacotron2(None, hparams)
+        else:
+            self._model_tacotron_tpg = Tacotron_tpg(None, hparams)
             
-    @timecall(immediate=True)
     def synthesize_spectrograms(self, faces, return_alignments=False):
         """
         Synthesizes mel spectrograms from texts and speaker embeddings.
-
         :param texts: a list of N text prompts to be synthesized
         :param embeddings: a numpy array or list of speaker embeddings of shape (N, 256) 
         :param return_alignments: if True, a matrix representing the alignments between the 
@@ -75,15 +83,36 @@ class Synthesizer:
         :return: a list of N melspectrograms as numpy arrays of shape (80, Mi), where Mi is the 
         sequence length of spectrogram i, and possibly the alignments.
         """
-        if not self.is_loaded():
-            print("@@@@@@@@@@\nLOADING MODEL....\n@@@@@@@@@@")
-            self.load()
+        if not self.is_loaded(cpu_based=True):
+            print("@@@@@@@@@@\nLOADING MODEL -- CPU BASED ....\n@@@@@@@@@@")
+            self.load(cpu_based=True)
         else:
-            print("$$$$$$$$$$\nMODEL ALREADY LOADED\n$$$$$$$$$$$")
+            print("$$$$$$$$$$\nMODEL ALREADY LOADED -- CPU BASED \n$$$$$$$$$$$")
             
-        specs, alignments = self._model.my_synthesize(faces)
+        specs, alignments = self._model_tacotron2.my_synthesize(faces)
         
         return (specs, alignments) if return_alignments else specs
+
+    @timecall(immediate=True)
+    def synthesize_wavs(self, faces, return_alignments=False):
+        """
+        Synthesizes mel spectrograms from texts and speaker embeddings.
+        :param texts: a list of N text prompts to be synthesized
+        :param embeddings: a numpy array or list of speaker embeddings of shape (N, 256) 
+        :param return_alignments: if True, a matrix representing the alignments between the 
+        characters
+        and each decoder output step will be returned for each spectrogram
+        :return: a list of N melspectrograms as numpy arrays of shape (80, Mi), where Mi is the 
+        sequence length of spectrogram i, and possibly the alignments.
+        """
+        if not self.is_loaded(cpu_based=False):
+            print("@@@@@@@@@@\nLOADING MODEL -- GPU BASED ....\n@@@@@@@@@@")
+            self.load(cpu_based=False)
+        else:
+            print("$$$$$$$$$$\nMODEL ALREADY LOADED -- GPU BASED \n$$$$$$$$$$$")
+        
+        wav = self._model_tacotron_tpg.my_synthesize(faces)
+        return wav
 
     @staticmethod
     def _one_shot_synthesize_spectrograms(checkpoint_fpath, texts, embeddings):

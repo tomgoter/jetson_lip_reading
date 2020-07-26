@@ -268,7 +268,7 @@ hparams = HParams(
     # Learning rate schedule
     tacotron_decay_learning_rate=True,
     # boolean, determines if the learning rate will follow an exponential decay
-    tacotron_start_decay=90000,  # Step at which learning decay starts
+    tacotron_start_decay=160000,  # Step at which learning decay starts
     tacotron_decay_steps=10000,  # Determines the learning rate decay slope (UNDER TEST)
     tacotron_decay_rate=0.5,  # learning rate decay rate (UNDER TEST)
     tacotron_initial_learning_rate=1e-3,  # starting learning rate
@@ -331,7 +331,7 @@ hparams = HParams(
 
 
     ###Speech synthesis from lips###
-    eval_ckpt="/data/saved_models/logs-fps20/taco_pretrained/tacotron_model.ckpt-100000",
+    eval_ckpt="/jlrdata/lrs3/tacotron_model.ckpt-138000",
     
     speaker="unset",
     T=30,

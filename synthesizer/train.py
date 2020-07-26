@@ -163,8 +163,13 @@ def train(log_dir, args, hparams):
         try:
             summary_writer = tf.summary.FileWriter(tensorboard_dir, sess.graph)
             
-            sess.run(tf.global_variables_initializer())
-            
+            tvars = tf.compat.v1.trainable_variables()
+            print("Number of trainable variables is: {}".format(len(tvars)))
+            tvars = [var for var in tvars if 'encoder_' in var.name]
+            sess.run(tf.variables_initializer(tvars, name='init'))
+            #sess.run(tf.global_variables_initializer())
+
+                                  
             # saved model restoring
             if args.restore:
                 # Restore saved model if the user requested it, default = True
@@ -178,6 +183,8 @@ def train(log_dir, args, hparams):
                         log("Loading checkpoint {}".format(hparams.eval_ckpt),
                             slack=True)
                         saver.restore(sess, hparams.eval_ckpt)
+                        tvars = tf.compat.v1.trainable_variables()
+                        print("Updated number of trainable variables is: {}".format(len(tvars)))
                     
                     else:
                         log("No model to load at {}".format(save_dir), slack=True)

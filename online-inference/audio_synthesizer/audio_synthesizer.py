@@ -150,6 +150,10 @@ class Generator(object):
       images = np.asarray(images) / 255.
       return images
 
+   def post_process_wav(self, wav):
+      wav *= 32767 / max(0.01, np.max(np.abs(wav)))
+      return wav
+
    def generate_mel_spec(self, images):
       # Synthesize Spectrogram
       mel_spec = self.synthesizer.synthesize_spectrograms(images)[0]         
@@ -178,7 +182,7 @@ class Generator(object):
       else:
          print("Generating wav file of mel spectrograms")
          wav = self.synthesizer.griffin_lim(self.mel_batch)
-         wav *= 32767 / max(0.01, np.max(np.abs(wav)))
+         wav = self.post_process_wav(wav)
 
          self.num_mels = 0
          self.mel_batch = None
@@ -191,6 +195,7 @@ class Generator(object):
       '''
       images = self.resize_and_nparrize_images(images)
       wav = self.synthesizer.synthesize_wavs(images)
+      wav = self.post_process_wav(wav)
       return wav
 
    def generate_wav(self, images):
@@ -228,10 +233,10 @@ class Generator(object):
 
 
 # Initialize audio generator
-generator = Generator(cpu_based = args.method_of_synthesis == "cpu_based")
+generator = Generator(cpu_based = args.method_of_synthesis == "cpu")
 
 # Wait for messages until disconnected by system interrupt
-print("\n########################n Ready to receive faces \n########################n")
+print("\n########################\n Ready to receive faces \n########################\n")
 audio_sample_num = 1
 num_frames = sif.hparams.T
 while True:
@@ -250,9 +255,9 @@ while True:
       # Save as wav file or forward via mqtt
       try:
          if (args.wav_action == "save"):
-            generator.generate_and_save_wav(faces_to_process, WAVS_ROOT, audio_sample_num)
+            generator.generate_wav_and_save(faces_to_process, WAVS_ROOT, audio_sample_num)
          elif (args.wav_action == "forward"):
-            generator.generate_and_forward_wav(faces_to_process, sender_client, args.pub_topic, args.pub_qos)
+            generator.generate_wav_and_forward(faces_to_process, sender_client, args.pub_topic, args.pub_qos)
 
          audio_sample_num += 1
       except KeyboardInterrupt:

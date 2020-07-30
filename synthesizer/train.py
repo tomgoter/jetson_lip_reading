@@ -163,11 +163,11 @@ def train(log_dir, args, hparams):
         try:
             summary_writer = tf.summary.FileWriter(tensorboard_dir, sess.graph)
             
-            tvars = tf.compat.v1.trainable_variables()
-            print("Number of trainable variables is: {}".format(len(tvars)))
-            tvars = [var for var in tvars if 'encoder_' in var.name]
-            sess.run(tf.variables_initializer(tvars, name='init'))
-            #sess.run(tf.global_variables_initializer())
+            #tvars = tf.compat.v1.trainable_variables()
+            #print("Number of trainable variables is: {}".format(len(tvars)))
+            #tvars = [var for var in tvars if 'encoder_' in var.name]
+            #sess.run(tf.variables_initializer(tvars, name='init'))
+            sess.run(tf.global_variables_initializer())
 
                                   
             # saved model restoring

@@ -51,7 +51,7 @@ if __name__ == "__main__":
                         help="Steps between writing checkpoints")
     parser.add_argument("--eval_interval", type=int, default=1000, # Was 10000
                         help="Steps between eval on test data")
-    parser.add_argument("--tacotron_train_steps", type=int, default=200000, # Was 100000
+    parser.add_argument("--tacotron_train_steps", type=int, default=150000, # Was 100000
                         help="total number of tacotron training steps")
     parser.add_argument("--tf_log_level", type=int, default=1, help="Tensorflow C++ log level.")
 

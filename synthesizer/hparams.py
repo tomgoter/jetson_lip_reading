@@ -7,7 +7,7 @@ def get_image_list(split, data_root):
     with open(os.path.join(data_root, '{}.txt'.format(split))) as vidlist:
         for vid_id in vidlist:
             vid_id = vid_id.strip()
-            filelist.extend(list(glob(os.path.join(data_root, 'pp_20fps', vid_id, '*/*.jpg'))))
+            filelist.extend(list(glob(os.path.join(data_root, 'preprocessed', vid_id, '*/*.jpg'))))
     return filelist
 
 # Default hyperparameters
@@ -172,7 +172,7 @@ hparams = HParams(
     ###########################################################################################################################################
     
     # Tacotron
-    outputs_per_step=1, # Was 1
+    outputs_per_step=2, # Was 1
     # number of frames to generate at each decoding step (increase to speed up computation and 
     # allows for higher batch size, decreases G&L audio quality)
     stop_at_any=True,
@@ -268,7 +268,7 @@ hparams = HParams(
     # Learning rate schedule
     tacotron_decay_learning_rate=True,
     # boolean, determines if the learning rate will follow an exponential decay
-    tacotron_start_decay=160000,  # Step at which learning decay starts
+    tacotron_start_decay=60000,  # Step at which learning decay starts
     tacotron_decay_steps=10000,  # Determines the learning rate decay slope (UNDER TEST)
     tacotron_decay_rate=0.5,  # learning rate decay rate (UNDER TEST)
     tacotron_initial_learning_rate=1e-3,  # starting learning rate
@@ -331,15 +331,15 @@ hparams = HParams(
 
 
     ###Speech synthesis from lips###
-    eval_ckpt="/jlrdata/lrs3/tacotron_model.ckpt-138000",
+    eval_ckpt="/data/saved_models/logs-baseline_v2/taco_pretrained/tacotron_model.ckpt-10000",
     
     speaker="unset",
-    T=30,
+    T=90,
     overlap=15,
     mel_overlap=40,
-    mel_step_size=120,
+    mel_step_size=240,
     img_size=96,
-    fps=20,
+    fps=30,
 )
 
 

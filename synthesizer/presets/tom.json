@@ -12,8 +12,8 @@
 	"decoder_layers" : 2,
 	"decoder_lstm_units" : 1024,
 
-    "tacotron_teacher_forcing_start_decay" : 20000,
-    "tacotron_teacher_forcing_decay_steps" : 80000,
+    "tacotron_teacher_forcing_start_decay" : 15000,
+    "tacotron_teacher_forcing_decay_steps" : 25000,
 
     "T" : 90,
     "overlap" : 15,

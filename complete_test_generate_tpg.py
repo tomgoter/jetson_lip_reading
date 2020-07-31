@@ -153,6 +153,6 @@ if __name__ == '__main__':
                 continue
 
             command = template.format(ss, vidpath + 'audio.wav', es, 
-                                    '{}{}_{}:{}.wav'.format(GTS_ROOT, vidname, ss, es))
+                                    '{}{}_{}:{}.wav'.format(GTS_ROOT, vidname, ss, (es-ss)))
 
             subprocess.call(command, shell=True)

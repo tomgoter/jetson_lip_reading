@@ -18,5 +18,7 @@ ENV QOS 1
 ENV PUB_HOST "10.0.0.45"
 ENV PUB_TOPIC "jetson/faces"
 
+RUN apt install -y vim
+
 # Run face detector script with parameters
 CMD python3 face_detector.py "jetson-face-sender" $PUB_HOST 1883 $QOS $PUB_TOPIC

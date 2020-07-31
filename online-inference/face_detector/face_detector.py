@@ -61,6 +61,11 @@ while not client.connected_flag:
 # Define camera to use for capturing images to analyze (1 corresponds to USB camera)
 cam = cv2.VideoCapture(1)
 
+# Set the Resolution to 480P
+cam.set(3, 640)
+cam.set(4, 480)
+
+
 # start up face detector and publish message to broker when a face is detected
 face_detector = TrtMtcnn()
 frame_counter = -1
@@ -81,6 +86,8 @@ while(True):
       print("saw a face")
       x1, y1, x2, y2 = int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3])
       face = frame[y1:y2, x1:x2]
+
+      cv2.imshow(f'Detected Face - {1 / duration} fps', face) 
 
       rc, png = cv2.imencode('.png', face)
       message = png.tobytes()

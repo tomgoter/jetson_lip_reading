@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import time
 import os
 import queue
+import threading
 
 import numpy as np
 
@@ -127,11 +128,27 @@ while True:
       wav_num += 1
 '''
 
-# Wait for messages until disconnected by system interrupt
-while True:
-   if (wav_files_queue.qsize() > 0):
-      # case: queuing file paths to saved wav files
-      playsound(wav_files_queue.get(block=True))
+
+def process_wav_bytes():
+   # Wait for messages until disconnected by system interrupt
+   while True:
+      try:
+         if (wav_files_queue.qsize() > 0):
+            # case: queuing file paths to saved wav files
+            playsound(wav_files_queue.get(block=True))
+      except KeyboardInterrupt:
+         exit(0)
+      '''
+      except Exception as e:
+         print(e)
+         continue
+      '''
+
+
+# Run the process faces function in a separate thread from main
+process_wav_bytes_thread = threading.Thread(target=process_wav_bytes)
+process_wav_bytes_thread.start()
+process_wav_bytes_thread.join()
 
 
 

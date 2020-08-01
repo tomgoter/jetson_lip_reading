@@ -271,6 +271,9 @@ def process_faces():
          '''
 
 # Run the process faces function in a separate thread from main
-process_faces_thread = threading.Thread(target=process_faces)
-process_faces_thread.start()
-process_faces_thread.join()
+#process_faces_thread = threading.Thread(target=process_faces)
+#process_faces_thread.start()
+#process_faces_thread.join()
+
+# Run the process face function
+process_faces()

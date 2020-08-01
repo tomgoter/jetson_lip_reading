@@ -75,18 +75,20 @@ for (cutdir, dirnum) in cutdirs_and_nums:
    fnames_and_nums.sort(key=lambda x: x[1])
 
    # start up face grabber and publish message to broker when a face is detected
-   frame_counter = -1
    for (fname, num) in fnames_and_nums:
+      start = time.time()
       # extract & publish faces
       face = cv2.imread(fname, cv2.IMREAD_COLOR)
       if np.shape(face) == ():
          print("continuing due to invalid file ==> fname = " + str(fname) + ", " + str(num))
          continue
-      print("fname = " + str(fname) + ", " + str(num))
+
       rc, png = cv2.imencode('.png', face)
       message = png.tobytes()
       client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
-      frame_counter += 1
+      
+      duration = time.time() - start
+      print("fname = " + str(fname) + ", " + str(num), " [duration = " + str(duration * 1000) + " ms (" + str(1/duration) + " fps)]"
 
 # do clean up
 client.loop_stop()

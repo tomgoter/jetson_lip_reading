@@ -88,7 +88,7 @@ for (cutdir, dirnum) in cutdirs_and_nums:
       client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
       
       duration = time.time() - start
-      print("fname = " + str(fname) + ", " + str(num), " [duration = " + str(duration * 1000) + " ms (" + str(1/duration) + " fps)]"
+      print("fname = " + str(fname) + ", " + str(num), " [duration = " + str(duration * 1000) + " ms (" + str(1/duration) + " fps)]")
 
 # do clean up
 client.loop_stop()

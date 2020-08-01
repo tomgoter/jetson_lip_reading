@@ -22,9 +22,6 @@ class Tacotron2:
         targets = tf.placeholder(tf.float32, (None, None, hparams.num_mels), name="mel_targets")
         split_infos = tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name="split_infos")
         '''
-        # Enable Eager Execution to get this pre-loaded
-        tf.enable_eager_execution()
-
         inputs = tf.placeholder(tf.float32, shape=(None, hparams.T, hparams.img_size, 
                                     hparams.img_size, 3), name="inputs"),
         input_lengths = tf.placeholder(tf.int32, shape=(None,), name="input_lengths"),

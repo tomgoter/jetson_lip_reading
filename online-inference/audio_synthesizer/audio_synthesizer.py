@@ -128,6 +128,15 @@ class Generator(object):
       self.mel_batch = None
       self.num_mels = 0
 
+   # Run a single round of inference to force model init
+   def force_model_init(self):
+      model_init_dir = "./forced_model_init_faces/"
+      fnames = [path.join(model_init_dir, f) for f in listdir(model_init_dir)]
+      assert len(fnames) == num_frames
+
+      faces_to_process = [cv2.imread(fname, cv2.IMREAD_COLOR) for fname in fnames]
+      self.generate_wav(images)
+
    def resize_and_nparrize_images(self, images):
       images = [cv2.resize(img, (sif.hparams.img_size, sif.hparams.img_size)) for img in images]
       images = np.asarray(images) / 255.
@@ -218,13 +227,14 @@ class Generator(object):
 def process_faces():
    # Initialize audio generator
    generator = Generator(cpu_based = args.method_of_synthesis == "cpu")
+   generator.force_model_init()
 
    # Wait for messages until disconnected by system interrupt
    print("\n########################\n Ready to receive faces \n########################\n")
    audio_sample_num = 1
    num_frames = sif.hparams.T
    while True:
-      print("queue size = " + str(face_queue.qsize()))
+      #print("queue size = " + str(face_queue.qsize()))
 
       # Check to see if queue has enough frames
       if (face_queue.qsize() >= num_frames):

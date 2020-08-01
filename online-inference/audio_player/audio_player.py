@@ -3,7 +3,6 @@ import paho.mqtt.client as mqtt
 import time
 import os
 import queue
-import threading
 
 import numpy as np
 
@@ -143,12 +142,6 @@ def process_wav_bytes():
          print(e)
          continue
       '''
-
-
-# Run the process wav bytes function in a separate thread from main
-#process_wav_bytes_thread = threading.Thread(target=process_wav_bytes)
-#process_wav_bytes_thread.start()
-#process_wav_bytes_thread.join()
 
 # Run the process wav bytes function
 process_wav_bytes()

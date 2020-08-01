@@ -16,9 +16,6 @@ from glob import glob
 from scipy.io import wavfile
 import io
 
-# for mulit-threading
-import threading
-
 ##############
 # Parameters #
 ##############
@@ -88,25 +85,10 @@ def on_subscribe(client, userdata, mid, granted_qos):
    print("subscribed")
 
 def on_message(client, userdata, message):
-   #print("message received")
-   #print("message topic=", message.topic)
-   #print("message qos=", message.qos)
-   #print("message retain flag=", message.retain)
-   #print("\n")
-
    # Put frame to python queue to be processed when batches of num_frames are available
    face = np.asarray(bytearray(message.payload), dtype="uint8")
    face = cv2.imdecode(face, cv2.IMREAD_COLOR)
    face_queue.put(face, block=True)
-   
-   '''
-   # publish message further on
-   print("publishing message to topic")
-   global sender_client
-   ret = sender_client.publish(args.pub_topic, payload=message.payload, qos=args.pub_qos, retain=False)
-   print("publish returned = ", str(ret))
-   print("\n")
-   '''
 
 
 # Set up receiver client & callbacks
@@ -269,11 +251,6 @@ def process_faces():
             print(e)
             continue
          '''
-
-# Run the process faces function in a separate thread from main
-#process_faces_thread = threading.Thread(target=process_faces)
-#process_faces_thread.start()
-#process_faces_thread.join()
 
 # Run the process face function
 process_faces()

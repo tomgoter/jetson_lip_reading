@@ -145,12 +145,13 @@ def process_wav_bytes():
       '''
 
 
-# Run the process faces function in a separate thread from main
-process_wav_bytes_thread = threading.Thread(target=process_wav_bytes)
-process_wav_bytes_thread.start()
-process_wav_bytes_thread.join()
+# Run the process wav bytes function in a separate thread from main
+#process_wav_bytes_thread = threading.Thread(target=process_wav_bytes)
+#process_wav_bytes_thread.start()
+#process_wav_bytes_thread.join()
 
-
+# Run the process wav bytes function
+process_wav_bytes()
 
 
 

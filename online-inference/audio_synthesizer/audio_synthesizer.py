@@ -16,6 +16,8 @@ from glob import glob
 from scipy.io import wavfile
 import io
 
+# for mulit-threading
+import threading
 
 ##############
 # Parameters #
@@ -231,40 +233,44 @@ class Generator(object):
          mqtt_client.publish(topic, payload=wav_bytes, qos=qos)
 
 
-# Initialize audio generator
-generator = Generator(cpu_based = args.method_of_synthesis == "cpu")
+def process_faces():
+   # Initialize audio generator
+   generator = Generator(cpu_based = args.method_of_synthesis == "cpu")
 
-# Wait for messages until disconnected by system interrupt
-print("\n########################\n Ready to receive faces \n########################\n")
-audio_sample_num = 1
-num_frames = sif.hparams.T
-while True:
-   # print("queue size = " + str(face_queue.qsize()))
+   # Wait for messages until disconnected by system interrupt
+   print("\n########################\n Ready to receive faces \n########################\n")
+   audio_sample_num = 1
+   num_frames = sif.hparams.T
+   while True:
+      print("queue size = " + str(face_queue.qsize()))
 
-   # Check to see if queue has enough frames
-   if (face_queue.qsize() >= num_frames):
-      print("reached " + str(num_frames) + " frames")
+      # Check to see if queue has enough frames
+      if (face_queue.qsize() >= num_frames):
+         print("reached " + str(num_frames) + " frames")
 
-      # Fetch num_frames faces to process from the queue
-      faces_to_process = []
-      while (len(faces_to_process) != num_frames):
-         faces_to_process.append(face_queue.get(block=True))
+         # Fetch num_frames faces to process from the queue
+         faces_to_process = []
+         while (len(faces_to_process) != num_frames):
+            faces_to_process.append(face_queue.get(block=True))
 
-      # Process frames and generate synthesized audio as wav file data
-      # Save as wav file or forward via mqtt
-      try:
-         if (args.wav_action == "save"):
-            generator.generate_wav_and_save(faces_to_process, WAVS_ROOT, audio_sample_num)
-         elif (args.wav_action == "forward"):
-            generator.generate_wav_and_forward(faces_to_process, sender_client, args.pub_topic, args.pub_qos)
+         # Process frames and generate synthesized audio as wav file data
+         # Save as wav file or forward via mqtt
+         try:
+            if (args.wav_action == "save"):
+               generator.generate_wav_and_save(faces_to_process, WAVS_ROOT, audio_sample_num)
+            elif (args.wav_action == "forward"):
+               generator.generate_wav_and_forward(faces_to_process, sender_client, args.pub_topic, args.pub_qos)
 
-         audio_sample_num += 1
-      except KeyboardInterrupt:
-         exit(0)
-'''
-      except Exception as e:
-         print(e)
-         continue
-'''
+            audio_sample_num += 1
+         except KeyboardInterrupt:
+            exit(0)
+         '''
+         except Exception as e:
+            print(e)
+            continue
+         '''
 
-
+# Run the process faces function in a separate thread from main
+process_faces_thread = threading.Thread(target=process_faces)
+process_faces_thread.start()
+process_faces_thread.join()

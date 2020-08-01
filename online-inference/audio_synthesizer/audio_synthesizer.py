@@ -131,10 +131,10 @@ class Generator(object):
    # Run a single round of inference to force model init
    def force_model_init(self):
       model_init_dir = "./forced_model_init_faces/"
-      fnames = [path.join(model_init_dir, f) for f in listdir(model_init_dir)]
+      fnames = [os.path.join(model_init_dir, f) for f in os.listdir(model_init_dir)]
       assert len(fnames) == num_frames
 
-      faces_to_process = [cv2.imread(fname, cv2.IMREAD_COLOR) for fname in fnames]
+      images = [cv2.imread(fname, cv2.IMREAD_COLOR) for fname in fnames]
       self.generate_wav(images)
 
    def resize_and_nparrize_images(self, images):
@@ -234,7 +234,7 @@ def process_faces():
    audio_sample_num = 1
    num_frames = sif.hparams.T
    while True:
-      #print("queue size = " + str(face_queue.qsize()))
+      print("queue size = " + str(face_queue.qsize()))
 
       # Check to see if queue has enough frames
       if (face_queue.qsize() >= num_frames):

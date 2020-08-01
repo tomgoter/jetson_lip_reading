@@ -21,6 +21,9 @@ class Tacotron2:
         targets = tf.placeholder(tf.float32, (None, None, hparams.num_mels), name="mel_targets")
         split_infos = tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name="split_infos")
         '''
+        # Enable Eager Execution to get this pre-loaded
+        tf.compat.v1.enable_eager_execution()
+        
         inputs = tf.compat.v1.placeholder(tf.float32, shape=(None, hparams.T, hparams.img_size, 
                                     hparams.img_size, 3), name="inputs"),
         input_lengths = tf.compat.v1.placeholder(tf.int32, shape=(None,), name="input_lengths"),
@@ -36,8 +39,7 @@ class Tacotron2:
         with tf.compat.v1.variable_scope("Tacotron_model") as scope:
             self.model = create_model(model_name, hparams)
             if gta:
-                self.model.initialize(inputs, input_lengths, speaker_embeddings, targets, gta=gta,
-                                      split_infos=split_infos)
+                self.model.initialize(inputs, input_lengths, speaker_embeddings, targets, gta=gta, split_infos=split_infos)
             else:
                 self.model.initialize(inputs[0], input_lengths[0], speaker_embeddings[0], split_infos=split_infos[0])
             
@@ -49,6 +51,7 @@ class Tacotron2:
             self.mel_transposed = tf.transpose(tf.reshape(self.mel_outputs[0], [hparams.mel_step_size,hparams.num_mels]))
             self.wav_output = audio.inv_mel_spectrogram_tensorflow(self.mel_transposed , hparams)
             print(self.wav_output)
+
         self.gta = gta
         self._hparams = hparams
         #pad input sequences with the <pad_token> 0 ( _ )

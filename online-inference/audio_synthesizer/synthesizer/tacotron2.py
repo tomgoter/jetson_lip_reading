@@ -22,6 +22,9 @@ class Tacotron2:
         targets = tf.placeholder(tf.float32, (None, None, hparams.num_mels), name="mel_targets")
         split_infos = tf.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), name="split_infos")
         '''
+        # Enable Eager Execution to get this pre-loaded
+        tf.enable_eager_execution()
+
         inputs = tf.placeholder(tf.float32, shape=(None, hparams.T, hparams.img_size, 
                                     hparams.img_size, 3), name="inputs"),
         input_lengths = tf.placeholder(tf.int32, shape=(None,), name="input_lengths"),
@@ -77,45 +80,6 @@ class Tacotron2:
         saver.restore(self.session, hparams.eval_ckpt)
 
         print ("LOADED MODEL")
-
-        '''
-        all_nodes = [n for n in tf.get_default_graph().as_graph_def().node]
-        for node in all_nodes:
-            print("** - " + str(node.name))
-
-        # Source: https://docs.nvidia.com/deeplearning/frameworks/tf-trt-user-guide/index.html#using-metagraph-checkpoint
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        print("@@@ TAKING MODEL CHECKPOINTS & GENERATING A FROZEN GRAPH @@@")
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")  
-
-        # Take the model checkpoints and generate a frozen graph
-        OUTPUT_NODE_NAMES = ['Tacotron_model/inference/transpose'] #[self.mel_outputs, self.alignments] #['logits', 'classes']
-        frozen_graph = tf.graph_util.convert_variables_to_constants(
-           self.session,
-           tf.get_default_graph().as_graph_def(),
-           output_node_names=OUTPUT_NODE_NAMES)
-
-        # Source: https://docs.nvidia.com/deeplearning/frameworks/tf-trt-user-guide/index.html#using-frozengraph
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        print("@@@ USING FROZEN GRAPH TO GENERATED TRT GRAPH @@@")
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-
-        # Convert TF model to TRT model using frozen graph
-        converter = trt.TrtGraphConverter(
-            input_graph_def=frozen_graph,
-            nodes_blacklist=OUTPUT_NODE_NAMES) #output nodes
-        trt_graph = converter.convert()
-
-        # Import the TensorRT graph into a new graph and run:
-        output_node = tf.import_graph_def(
-            trt_graph,
-            return_elements=OUTPUT_NODE_NAMES)
-        self.session.run(output_node)
-
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        print("@@@ DONE WITH LOADING TRT MODEL @@@")
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        '''
 
     
     @timecall(immediate=True)

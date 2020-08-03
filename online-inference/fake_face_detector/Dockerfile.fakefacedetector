@@ -19,7 +19,7 @@ ENV QOS 2
 ENV PUB_HOST $HOST
 ENV PUB_PORT 1883
 ENV PUB_TOPIC "jetson/faces"
-ENV SOURCE_DIR "./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/"
+ENV SOURCE_DIR "./mini_sample_chem/cut-0/"
 
 # Run face detector script with parameters
 CMD python3 fake_face_detector.py --pub_mqtt_host $PUB_HOST --pub_mqtt_port $PUB_PORT --pub_qos $QOS --pub_topic $PUB_TOPIC \

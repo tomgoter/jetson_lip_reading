@@ -32,32 +32,40 @@ RUN apt install -y ffmpeg
 # for profiling (can remove)
 RUN pip3 install profilehooks
 
-# Add Vim for Tom
+# Add Vim
 RUN apt install -y vim
 
 ###############################
 
 # Copy over files
-#RUN mkdir /audio_synthesizer
-#RUN cd /audio_synthesizer
+RUN mkdir /audio_synthesizer
+RUN cd /audio_synthesizer
 WORKDIR /audio_synthesizer
-#ADD ./ /audio_synthesizer/
+ADD ./ /audio_synthesizer/
 
-#############
-# Need to copy over model weights...
-#############
+###############################
 
 EXPOSE 1883
 
-# define environment variables for command line & set defaults
-ENV QOS 1
-ENV PUB_HOST "10.0.0.45"
-ENV SUB_HOST "10.0.0.45"
-ENV PUB_TOPIC "jetson/audio"
+# define environment variables for inference & set defaults
+ENV PRESET "synthesizer/presets/chem.json"
+ENV CHECKPOINT "weights/chem/tacotron_model.ckpt-159000"
+ENV WAV_ACTION "forward"
+ENV RESULTS_ROOT "chem-test-results"
+ENV METHOD_OF_SYNTHESIS "gpu"
+
+# define environment variables for mqtt & set defaults
+ENV QOS 2
+ENV HOST "10.0.0.47"
+ENV SUB_HOST $HOST
 ENV SUB_TOPIC "jetson/faces"
+ENV SUB_PORT 1883
+ENV PUB_HOST $HOST
+ENV PUB_TOPIC "jetson/audio"
+ENV PUB_PORT 1883
 
-# Run audio synthesizer script with parameters
-#CMD python audio_synthesizer.py "jetson-face-receiver" $PUB_HOST 1883 $QOS $SUB_TOPIC \
-#                                "jetson-audio-sender"  $SUB_HOST 1883 $QOS $PUB_TOPIC
-
-#CMD python3 complete_test_generate.py -d Dataset/mini_sample -r Dataset/mini_sample/test_results --preset synthesizer/presets/chem.json --checkpoint "weights/logs_chemistry/tacotron_model.ckpt-159000"
+# Run audio synthesizer script
+CMD python3 audio_synthesizer.py --preset $PRESET --checkpoint $CHECKPOINT \
+	--wav_action WAV_ACTION --results_root $RESULTS_ROOT --method_of_synthesis $METHOD_OF_SYNTHESIS \
+	--sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC \
+	--pub_mqtt_host $PUB_HOST --pub_mqtt_port $PUB_PORT --pub_qos $QOS --pub_topic $PUB_TOPIC  

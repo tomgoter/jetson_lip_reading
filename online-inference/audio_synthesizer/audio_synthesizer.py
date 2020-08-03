@@ -23,25 +23,25 @@ import io
 parser = argparse.ArgumentParser()
 
 # Synthesizer params
-parser.add_argument("-r", "--results_root", help="Speaker folder path", required=True)
 parser.add_argument("--checkpoint", help="Path to trained checkpoint", required=True)
 parser.add_argument("--preset", help="Speaker-specific hyper-params", type=str, required=True)
-parser.add_argument("--wav_action", help="What to do with the generated wav files", type=str, required=True, choices=["save", "forward"])
-parser.add_argument("--method_of_synthesis", help="The method of synthesis to used (cpu-based or gpu-based) to generate wav files", type=str, required=True, choices=["cpu", "gpu"])
+parser.add_argument("--wav_action", help="What to do with the generated wav files", type=str, required=True, choices=["save", "forward"], default="forward")
+parser.add_argument("--results_root", help="Speaker folder path, only needed if wav_action=='save'", required=False)
+parser.add_argument("--method_of_synthesis", help="The method of synthesis to used (cpu-based or gpu-based) to generate wav files", type=str, required=True, choices=["cpu", "gpu"], default="gpu")
 
 # Subscribing client params
-parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True)
+parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True, default="jetson-face-receiver")
 parser.add_argument("--sub_mqtt_host", help="The MQTT host for the subscribing client", type=str, required=True)
-parser.add_argument("--sub_mqtt_port", help="The MQTT port for the subscribing client", type=int, required=True)
-parser.add_argument("--sub_qos", help="The MQTT quality of service for the subscribing client", type=int, required=True)
-parser.add_argument("--sub_topic", help="The MQTT topic the subscribing client should subscribe to", type=str, required=True)
+parser.add_argument("--sub_mqtt_port", help="The MQTT port for the subscribing client", type=int, required=True, default=1883)
+parser.add_argument("--sub_qos", help="The MQTT quality of service for the subscribing client", type=int, required=True, default=2)
+parser.add_argument("--sub_topic", help="The MQTT topic the subscribing client should subscribe to", type=str, required=True, default="jetson/faces")
 
 # Publishing client params
-parser.add_argument("--pub_client_name", help="The name of the MQTT publishing client", type=str, required=True)
+parser.add_argument("--pub_client_name", help="The name of the MQTT publishing client", type=str, required=True, default="jetson-audio-sender")
 parser.add_argument("--pub_mqtt_host", help="The MQTT host for the publishing client", type=str, required=True)
-parser.add_argument("--pub_mqtt_port", help="The MQTT port for the publishing client", type=int, required=True)
-parser.add_argument("--pub_qos", help="The MQTT quality of service for the publishing client", type=int, required=True)
-parser.add_argument("--pub_topic", help="The MQTT topic the publishing client should publish to", type=str, required=True)
+parser.add_argument("--pub_mqtt_port", help="The MQTT port for the publishing client", type=int, required=True, default=1883)
+parser.add_argument("--pub_qos", help="The MQTT quality of service for the publishing client", type=int, required=True, default=2)
+parser.add_argument("--pub_topic", help="The MQTT topic the publishing client should publish to", type=str, required=True, default="jetson/audio")
 
 args = parser.parse_args()
 
@@ -54,9 +54,11 @@ args = parser.parse_args()
 with open(args.preset) as f:
    sif.hparams.parse_json(f.read()) ## add speaker-specific parameters
 sif.hparams.set_hparam('eval_ckpt', args.checkpoint)
-WAVS_ROOT = os.path.join(args.results_root, 'wavs/')
-if not os.path.isdir(WAVS_ROOT):
-   os.mkdir(WAVS_ROOT)
+
+if (args.wav_action == "save"):
+   WAVS_ROOT = os.path.join(args.results_root, 'wavs/')
+   if not os.path.isdir(WAVS_ROOT):
+      os.mkdir(WAVS_ROOT)
 
 # Set params for processing
 num_frames = sif.hparams.T

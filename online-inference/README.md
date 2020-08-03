@@ -34,7 +34,7 @@ The following docker commands can be used to create and run everything from the 
 ```
 > docker build -t ffd_jlr -f Dockerfile.fakefacedetector .                                                            # to build the image
 > docker run -ti --name ffd1 -e QOS=2 -e SOURCE_DIR="./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/" ffd_jlr   # to run the container with a single cut of data
-> > docker run -ti --name ffd1 -e QOS=2 -e SOURCE_DIR="./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/" ffd_jlr # to run the container with multiple cuts of data (warning that this takes a while to process)
+> > docker run -ti --name ffd1 -e QOS=2 -e PUB_HOST "10.0.0.34" -e SOURCE_DIR="./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/" ffd_jlr # to run the container with multiple cuts of data (warning that this takes a while to process)
 > docker container stop ffd1 && docker container rm ffd1                                                              # to stop & remove container
 ```
 
@@ -45,16 +45,16 @@ Be sure to have the preprocessed dataset in the `fake_face_detector/` directory,
 
 ### Running the Container
 
-All necessary code for face detection lives in `audio_synthesizer/`, including the Dockerfile used to construct this container. 
+All necessary code for speech/audio synthesis lives in `audio_synthesizer/`, including the Dockerfile used to construct this container. 
 
 The following docker commands can be used to create and run everything from the `audio_synthesizer/` folder:
 ```
-> docker build -t as_jlr -f Dockerfile.audiosynthesizer .                       # to build the image
-> docker run -ti --name as1 -e QOS=2 --privileged as_jlr                        # to start the container
-> docker run -ti --name as1 -e QOS=2 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/:/audio_synthesizer/ --privileged as_jlr bash              
-
+> docker build -t as_jlr -f Dockerfile.audiosynthesizer .                       # to build the image                    
+> docker run -ti --name as1 -e HOST="10.0.0.47" -e CHECKPOINT="<path-to-checkpoint>" -e PRESET="<path-to-preset>" --privileged as_jlr bash     # to start the container
 > docker container stop as1 && docker container rm as1                          # to stop & remove container
 ```
+
+Be sure that the you've included the presets you're interested in using in the folder `audio_synthesizer/synthesizer/presets/` and the weights you're interested in using in `audio_synthesizer/weights/` prior to building the container to ensure they will be available at container runtime. 
 
 Running the docker container _____
 
@@ -68,6 +68,16 @@ For licenses, citations, and acknowledgements, please refer to the links include
 * [https://github.com/Rudrabha/Lip2Wav#license-and-citation](https://github.com/Rudrabha/Lip2Wav#license-and-citation)
 * [https://github.com/Rudrabha/Lip2Wav#acknowledgements](https://github.com/Rudrabha/Lip2Wav#acknowledgements)
 
+## Runing the Audio Player
 
+### Running the Container
 
+All necessary code for playing the synthesized speech/audio lives in `audio_synthesizer/`, including the Dockerfile used to construct this container. 
 
+```
+> docker build -t ap_jlr -f Dockerfile.audiosynthesizer .                                  # to build the image
+> docker run -ti --name ap1 -e SUB_HOST="10.0.0.47" --privileged --device /dev/snd ap_jlr  # to start the container  
+> docker container stop ap1 && docker container rm ap1                                     # to stop & remove container
+```
+
+ python3 audio_player.py "jetson/audio-receiver" "10.0.0.47" 1883 2 "jetson/audio"

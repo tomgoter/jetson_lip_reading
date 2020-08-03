@@ -2,15 +2,33 @@ FROM ubuntu
 
 RUN apt update
 RUN apt install -y python3 python3-pip 
-RUN apt-get install -y python3-gi gstreamer-1.0
-RUN pip3 install paho-mqtt playsound
-RUN pip3 install soundfile
+
+RUN pip3 install paho-mqtt playsound numpy
+RUN apt-get install -y python3-scipy
 RUN pip3 install scipy
 
-ENV QOS 1
-ENV SUB_HOST "10.0.0.45"
+RUN mkdir audio_player
+RUN cd /audio_player
+WORKDIR /audio_player
+ADD ./ /audio_player/
+
+
+#RUN apt-get install -y python3-gi gstreamer-1.0
+RUN ln -s /audio_player/startup.sh / # backwards compat
+RUN chmod 777 /audio_player/startup.sh
+ENTRYPOINT ["/audio_player/startup.sh"]
+
+
+#RUN pip3 install soundfile
+#RUN pip3 install pydub
+#RUN pip3 install ffmpeg-python
+#RUN pip3 install ffprobe
+#RUN pip3 install pygame
+
+ENV QOS 2
+ENV SUB_HOST "10.0.0.47"
+ENV SUB_PORT 1883
 ENV SUB_TOPIC "jetson/audio"
 
- docker run -ti --name ap1 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/Dataset/mini_sample/test_results/wavs/YouTube-chem-preproc_ffd_cpu-based-inf/:/wavs/ --device /dev/snd ubuntu bash
-
- python3 audio_player.py "jetson/audio-receiver" "10.0.0.45" 1883 2 "jetson/audio"
+# Run Audio Player Script
+# CMD python3 audio_player.py --sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC

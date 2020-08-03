@@ -22,12 +22,23 @@ from scipy.io import wavfile
 
 #from pygame import mixer, time
 
-# Subscribing client params
-SUBSCRIBING_CLIENT_NAME = str(sys.argv[1])
-SUBSCRIBING_MQTT_HOST = str(sys.argv[2])
-SUBSCRIBING_MQTT_PORT = int(sys.argv[3])
-SUBSCRIBING_QOS = int(sys.argv[4])
-SUBSCRIBE_TO_TOPIC = str(sys.argv[5])
+##############
+# Parameters #
+##############
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True, default="jetson-audio-receiver")
+parser.add_argument("--sub_mqtt_host", help="The MQTT host for the subscribing client", type=str, required=True)
+parser.add_argument("--sub_mqtt_port", help="The MQTT port for the subscribing client", type=int, required=True, default=1883)
+parser.add_argument("--sub_qos", help="The MQTT quality of service for the subscribing client", type=int, required=True, default=2)
+parser.add_argument("--sub_topic", help="The MQTT topic the subscribing client should subscribe to", type=str, required=True, default="jetson/audio")
+
+args = parser.parse_args()
+
+##############
+# Core Logic #
+##############
 
 # make a queue of wav files to play
 wav_bytes_queue = queue.Queue()
@@ -69,17 +80,17 @@ def on_message(client, userdata, message):
 
    
 # Set up client & callbacks
-client = mqtt.Client(SUBSCRIBING_CLIENT_NAME)
+client = mqtt.Client(args.sub_client_name)
 client.on_log = on_log
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_message = on_message
 client.on_subscribe = on_subscribe
-client.connect(SUBSCRIBING_MQTT_HOST, SUBSCRIBING_MQTT_PORT)
+client.connect(args.sub_mqtt_host, args.sub_mqtt_port)
 
 # start client & subscribe client to topic
 client.loop_start()
-client.subscribe(SUBSCRIBE_TO_TOPIC, SUBSCRIBING_QOS)
+client.subscribe(args.sub_topic, args.sub_qos)
 
 #mixer.pre_init(44100, -16, 2, 2048)
 #mixer.init()

@@ -3,6 +3,7 @@ import time
 import sys
 import os
 from os import listdir, path
+import argparse
 
 # Image Processing / Face Detection Imports
 import numpy as np
@@ -14,16 +15,27 @@ import paho.mqtt.client as mqtt
 mqtt.Client.connected_flag = False
 
 
-# Parameters
-PUBLISHING_CLIENT_NAME = str(sys.argv[1])
-PUBLISHING_MQTT_HOST = str(sys.argv[2])
-PUBLISHING_MQTT_PORT = int(sys.argv[3])
-PUBLISHING_QOS = int(sys.argv[4])
-PUBLISH_TO_TOPIC = str(sys.argv[5])
+##############
+# Parameters #
+##############
 
-# Params taken from preprocessing script
-min_size = 100 # found decently matched results on S3FD model for chem guy
+parser = argparse.ArgumentParser()
 
+# Publishing client params
+parser.add_argument("--pub_client_name", help="The name of the MQTT publishing client", type=str, required=False, default="jetson-face-sender")
+parser.add_argument("--pub_mqtt_host", help="The MQTT host for the publishing client", type=str, required=True)
+parser.add_argument("--pub_mqtt_port", help="The MQTT port for the publishing client", type=int, required=False, default=1883)
+parser.add_argument("--pub_qos", help="The MQTT quality of service for the publishing client", type=int, required=False, default=2)
+parser.add_argument("--pub_topic", help="The MQTT topic the publishing client should publish to", type=str, required=False, default="jetson/faces")
+
+# Params for mtcnn model
+parser.add_argument("--mtcnn_min_size", help="The minimum face pixel width/size for the mtcnn model", type=int, required=False, default=100)
+
+args = parser.parse_args()
+
+##############
+# Core Logic #
+##############
 
 #def on_log(client, userdata, level, buf):
 #   print(buf)
@@ -44,12 +56,12 @@ def on_disconnect(client, userdata, rc):
 
 
 # Set up publishing client & callbacks
-client = mqtt.Client(PUBLISHING_CLIENT_NAME)
+client = mqtt.Client(pub_client_name)
 #client.on_log = on_log
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 #client.on_publish = on_publish
-client.connect(PUBLISHING_MQTT_HOST, PUBLISHING_MQTT_PORT)
+client.connect(pub_mqtt_host, pub_mqtt_port)
 
 # wait for client to establish connection to broker
 client.loop_start()
@@ -61,11 +73,6 @@ while not client.connected_flag:
 # Define camera to use for capturing images to analyze (1 corresponds to USB camera)
 cam = cv2.VideoCapture(1)
 
-# Set the Resolution to 480P
-cam.set(3, 640)
-cam.set(4, 480)
-
-
 # start up face detector and publish message to broker when a face is detected
 face_detector = TrtMtcnn()
 frame_counter = -1
@@ -75,7 +82,7 @@ while(True):
 
    # identity faces
    start = time.time()
-   faces, landmarks = face_detector.detect(frame, minsize=min_size)
+   faces, landmarks = face_detector.detect(frame, minsize=args.mtcnn_min_size)
    duration = time.time() - start
    print("duration = " + str(duration * 1000) + " ms (" + str(1 / duration) + " fps)")
    frame_counter += 1
@@ -87,11 +94,9 @@ while(True):
       x1, y1, x2, y2 = int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3])
       face = frame[y1:y2, x1:x2]
 
-      cv2.imshow(f'Detected Face - {1 / duration} fps', face) 
-
       rc, png = cv2.imencode('.png', face)
       message = png.tobytes()
-      client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
+      client.publish(pub_topic, payload=message, qos=pub_qos)
 
       if (len(faces) > 1):
          break; 

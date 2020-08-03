@@ -28,7 +28,6 @@ parser.add_argument("--pub_topic", help="The MQTT topic the publishing client sh
 
 # Params for directory of fake face data
 parser.add_argument("--source_directory", help="The source directory of fake data; must be either the full directory of cut directories or an individual cut directory", type=str, required=True)
-parser.add_argument("--mtcnn_min_size", help="The minimum face pixel width/size for the mtcnn model", type=int, required=False, default=100)
 
 args = parser.parse_args()
 

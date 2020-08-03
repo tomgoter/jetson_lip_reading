@@ -33,7 +33,7 @@ RUN apt install -y ffmpeg
 RUN pip3 install profilehooks
 
 # Add Vim
-RUN apt install -y vim
+# RUN apt install -y vim
 
 ###############################
 
@@ -66,6 +66,6 @@ ENV PUB_PORT 1883
 
 # Run audio synthesizer script
 CMD python3 audio_synthesizer.py --preset $PRESET --checkpoint $CHECKPOINT \
-	--wav_action WAV_ACTION --results_root $RESULTS_ROOT --method_of_synthesis $METHOD_OF_SYNTHESIS \
+	--wav_action $WAV_ACTION --results_root $RESULTS_ROOT --method_of_synthesis $METHOD_OF_SYNTHESIS \
 	--sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC \
 	--pub_mqtt_host $PUB_HOST --pub_mqtt_port $PUB_PORT --pub_qos $QOS --pub_topic $PUB_TOPIC  

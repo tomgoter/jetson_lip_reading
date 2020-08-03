@@ -132,8 +132,9 @@ class Generator(object):
 
    # Run a single round of inference to force model init
    def force_model_init(self):
-      model_init_dir = "./forced_model_init_faces/"
-      fnames = [os.path.join(model_init_dir, f) for f in os.listdir(model_init_dir)]
+      # use the same face for simplicity--the inference results doesn't need to be reasonable
+      model_init_face = "./forced_model_init_face.jpg"
+      fnames = [model_init_face for i in range(0, num_frames)]
       assert len(fnames) == num_frames
 
       images = [cv2.imread(fname, cv2.IMREAD_COLOR) for fname in fnames]

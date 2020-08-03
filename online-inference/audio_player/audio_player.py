@@ -29,11 +29,11 @@ from scipy.io import wavfile
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=True, default="jetson-audio-receiver")
+parser.add_argument("--sub_client_name", help="The name of the MQTT subscribing client", type=str, required=False, default="jetson-audio-receiver")
 parser.add_argument("--sub_mqtt_host", help="The MQTT host for the subscribing client", type=str, required=True)
-parser.add_argument("--sub_mqtt_port", help="The MQTT port for the subscribing client", type=int, required=True, default=1883)
-parser.add_argument("--sub_qos", help="The MQTT quality of service for the subscribing client", type=int, required=True, default=2)
-parser.add_argument("--sub_topic", help="The MQTT topic the subscribing client should subscribe to", type=str, required=True, default="jetson/audio")
+parser.add_argument("--sub_mqtt_port", help="The MQTT port for the subscribing client", type=int, required=False, default=1883)
+parser.add_argument("--sub_qos", help="The MQTT quality of service for the subscribing client", type=int, required=False, default=2)
+parser.add_argument("--sub_topic", help="The MQTT topic the subscribing client should subscribe to", type=str, required=False, default="jetson/audio")
 
 args = parser.parse_args()
 

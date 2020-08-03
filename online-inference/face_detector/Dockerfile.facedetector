@@ -2,7 +2,7 @@ FROM tensorrtlab05
 
 # Install dependencies defined in hw 3
 RUN apt update
-RUN apt install -y python3-opencv vim
+RUN apt install -y python3-opencv
 RUN pip3 install paho-mqtt
 
 # Copy over files

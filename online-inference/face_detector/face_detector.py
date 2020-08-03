@@ -56,12 +56,12 @@ def on_disconnect(client, userdata, rc):
 
 
 # Set up publishing client & callbacks
-client = mqtt.Client(pub_client_name)
+client = mqtt.Client(args.pub_client_name)
 #client.on_log = on_log
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 #client.on_publish = on_publish
-client.connect(pub_mqtt_host, pub_mqtt_port)
+client.connect(args.pub_mqtt_host, args.pub_mqtt_port)
 
 # wait for client to establish connection to broker
 client.loop_start()
@@ -86,17 +86,15 @@ while(True):
    duration = time.time() - start
    print("duration = " + str(duration * 1000) + " ms (" + str(1 / duration) + " fps)")
    frame_counter += 1
-   #print("did a detection")
 
    # extract & publish faces
    for bb in faces:
-      print("saw a face")
       x1, y1, x2, y2 = int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3])
       face = frame[y1:y2, x1:x2]
 
       rc, png = cv2.imencode('.png', face)
       message = png.tobytes()
-      client.publish(pub_topic, payload=message, qos=pub_qos)
+      client.publish(args.pub_topic, payload=message, qos=args.pub_qos)
 
       if (len(faces) > 1):
          break; 

@@ -3,6 +3,7 @@ import time
 import sys
 import os
 from os import listdir, path
+import argparse
 
 # Face Grabbing Dependencies
 import cv2
@@ -12,18 +13,28 @@ import numpy as np
 import paho.mqtt.client as mqtt
 mqtt.Client.connected_flag = False
 
+##############
+# Parameters #
+##############
 
-# Parameters
-PUBLISHING_CLIENT_NAME = str(sys.argv[1])
-PUBLISHING_MQTT_HOST = str(sys.argv[2])
-PUBLISHING_MQTT_PORT = int(sys.argv[3])
-PUBLISHING_QOS = int(sys.argv[4])
-PUBLISH_TO_TOPIC = str(sys.argv[5])
+parser = argparse.ArgumentParser()
 
-SOURCE_DIRECTORY = str(sys.argv[6])
+# Publishing client params
+parser.add_argument("--pub_client_name", help="The name of the MQTT publishing client", type=str, required=False, default="jetson-face-sender")
+parser.add_argument("--pub_mqtt_host", help="The MQTT host for the publishing client", type=str, required=True)
+parser.add_argument("--pub_mqtt_port", help="The MQTT port for the publishing client", type=int, required=False, default=1883)
+parser.add_argument("--pub_qos", help="The MQTT quality of service for the publishing client", type=int, required=False, default=2)
+parser.add_argument("--pub_topic", help="The MQTT topic the publishing client should publish to", type=str, required=False, default="jetson/faces")
 
-# Params taken from preprocessing script
-min_size = 100 # found decently matched results on S3FD model for chem guy
+# Params for directory of fake face data
+parser.add_argument("--source_directory", help="The source directory of fake data; must be either the full directory of cut directories or an individual cut directory", type=str, required=True)
+parser.add_argument("--mtcnn_min_size", help="The minimum face pixel width/size for the mtcnn model", type=int, required=False, default=100)
+
+args = parser.parse_args()
+
+##############
+# Core Logic #
+##############
 
 #def on_log(client, userdata, level, buf):
 #   print(buf)
@@ -44,12 +55,12 @@ def on_disconnect(client, userdata, rc):
 
 
 # Set up publishing client & callbacks
-client = mqtt.Client(PUBLISHING_CLIENT_NAME)
+client = mqtt.Client(args.pub_client_name)
 #client.on_log = on_log
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 #client.on_publish = on_publish
-client.connect(PUBLISHING_MQTT_HOST, PUBLISHING_MQTT_PORT)
+client.connect(args.pub_mqtt_host, args.pub_mqtt_port)
 
 # wait for client to establish connection to broker
 client.loop_start()
@@ -60,12 +71,12 @@ while not client.connected_flag:
 
 # Specify tuples of source directories of face frames and the corresponding numerical order
 # Note that this is specific to how Lip2Wav preprocessing works on YouTube videos
-if ("cut" in os.path.basename(os.path.normpath(SOURCE_DIRECTORY))):
+if ("cut" in os.path.basename(os.path.normpath(args.source_directory))):
    # path to single cut directory with face frames specified
-   cutdirs_and_nums = [(SOURCE_DIRECTORY, 0)]
+   cutdirs_and_nums = [(args.source_directory, 0)]
 else:
    # path to multiple cut directories each with own set of face frames specified
-   cutdirs_and_nums = [(path.join(SOURCE_DIRECTORY, d), int(d[4:])) for d in listdir(SOURCE_DIRECTORY) if os.path.isdir(path.join(SOURCE_DIRECTORY, d))] 
+   cutdirs_and_nums = [(path.join(args.source_directory, d), int(d[4:])) for d in listdir(args.source_directory) if os.path.isdir(path.join(args.source_directory, d))] 
    cutdirs_and_nums.sort(key=lambda x: x[1])
 
 # Iterate through all cut directories in numerical order (pre-sorted)
@@ -85,7 +96,7 @@ for (cutdir, dirnum) in cutdirs_and_nums:
 
       rc, png = cv2.imencode('.png', face)
       message = png.tobytes()
-      client.publish(PUBLISH_TO_TOPIC, payload=message, qos=PUBLISHING_QOS)
+      client.publish(args.pub_topic, payload=message, qos=args.pub_qos)
       
       duration = time.time() - start
       print("fname = " + str(fname) + ", " + str(num), " [duration = " + str(duration * 1000) + " ms (" + str(1/duration) + " fps)]")

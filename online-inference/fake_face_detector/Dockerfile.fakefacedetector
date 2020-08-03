@@ -14,10 +14,13 @@ ADD ./ /face_detector/
 EXPOSE 1883
 
 # Define environment variables for command line & set defaults
-ENV QOS 1
-ENV PUB_HOST "10.0.0.45"
+ENV HOST "10.0.0.47"
+ENV QOS 2
+ENV PUB_HOST $HOST
+ENV PUB_PORT 1883
 ENV PUB_TOPIC "jetson/faces"
 ENV SOURCE_DIR "./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/"
 
 # Run face detector script with parameters
-CMD python3 fake_face_detector.py "jetson-face-sender" $PUB_HOST 1883 $QOS $PUB_TOPIC $SOURCE_DIR
+CMD python3 fake_face_detector.py --pub_mqtt_host $PUB_HOST --pub_mqtt_port $PUB_PORT --pub_qos $QOS --pub_topic $PUB_TOPIC \
+	--source_directory $SOURCE_DIR

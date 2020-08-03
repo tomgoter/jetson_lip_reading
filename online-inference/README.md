@@ -30,15 +30,15 @@ To help with the development of the audio synthesizer (so there's nothing depend
 
 All necessary code for the fake face detection lives in `fake_face_detector/`, including the Dockerfile used to construct this container.
 
-The following docker commands can be used to create and run everything from the `face_Detector/` folder:
+The following docker commands can be used to create and run everything from the `fake_face_detector/` folder:
 ```
-> docker build -t ffd_jlr -f Dockerfile.fakefacedetector .                                                            # to build the image
-> docker run -ti --name ffd1 -e QOS=2 -e SOURCE_DIR="./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/" ffd_jlr   # to run the container with a single cut of data
-> > docker run -ti --name ffd1 -e QOS=2 -e PUB_HOST "10.0.0.34" -e SOURCE_DIR="./Dataset/mini_sample/preprocessed/6DGPuhFoiJI/cut-0/" ffd_jlr # to run the container with multiple cuts of data (warning that this takes a while to process)
-> docker container stop ffd1 && docker container rm ffd1                                                              # to stop & remove container
+> docker build -t ffd_jlr -f Dockerfile.fakefacedetector .                                           # to build the image
+> docker run -ti --name ffd1 -e HOST="10.0.0.47" -e SOURCE_DIR="./mini_sample_chem/cut-0/" ffd_jlr   # to run with a single data cut
+> docker run -ti --name ffd1 -e HOST="10.0.0.47" -e SOURCE_DIR="./mini_sample_chem/" ffd_jlr         # to run with multiple cuts
+> docker container stop ffd1 && docker container rm ffd1                                             # to stop & remove container
 ```
 
-Be sure to have the preprocessed dataset in the `fake_face_detector/` directory, as it will search for the `SOURCE_DIR` relative to this location.
+Be sure to have the preprocessed dataset in the `fake_face_detector/` directory, as it will search for the `SOURCE_DIR` relative to this location. The sample mini dataset for the chemistry lecturer used for development can be found on Google Drive [here](https://drive.google.com/drive/folders/1oYmKVGE3cIwWoTnhgZwPhifEY08a9_Kd?usp=sharing).
 
 
 ## Running the Synthesizer
@@ -50,15 +50,15 @@ All necessary code for speech/audio synthesis lives in `audio_synthesizer/`, inc
 The following docker commands can be used to create and run everything from the `audio_synthesizer/` folder:
 ```
 > docker build -t as_jlr -f Dockerfile.audiosynthesizer .                       # to build the image                    
-> docker run -ti --name as1 -e HOST="10.0.0.47" -e CHECKPOINT="<path-to-checkpoint>" -e PRESET="<path-to-preset>" --privileged as_jlr bash     # to start the container
+> docker run -ti --name as1 -e HOST="10.0.0.47" -e CHECKPOINT="weights/<path-to-weights>" -e PRESET="synthesizer/presets/<preset-name>.json" --privileged as_jlr     # to start the container
 > docker container stop as1 && docker container rm as1                          # to stop & remove container
 ```
 
-Be sure that the you've included the presets you're interested in using in the folder `audio_synthesizer/synthesizer/presets/` and the weights you're interested in using in `audio_synthesizer/weights/` prior to building the container to ensure they will be available at container runtime. 
+Be sure that the you've included the presets you're interested in using in the folder `audio_synthesizer/synthesizer/presets/` and the weights you're interested in using in `audio_synthesizer/weights/` prior to building the container to ensure they will be available at container runtime. Sample weights for the chemistry lecturer can be found on Google Drive [here](https://drive.google.com/drive/folders/17NGz5Tp0wrLGV0Ub6pz_KMfCvo00O4eG?usp=sharing). An example of running the docker container with this sample chemistry lecturer can be run as follows:
 
-Running the docker container _____
-
-python3 audio_synthesizer.py -d Dataset/mini_sample -r Dataset/mini_sample/test_results --preset synthesizer/presets/chem.json --checkpoint "weights/logs_chemistry/tacotron_model.ckpt-159000" --sub_client_name "jetson-face-receiver" --sub_mqtt_host $PUB_HOST --sub_mqtt_port 1883 --sub_qos $QOS --sub_topic $SUB_TOPIC
+```
+> docker run -ti --name as1 -e HOST="10.0.0.47" -e CHECKPOINT="weights/chem/tacotron_model.ckpt-159000" -e PRESET="synthesizer/presets/chem.json" --privileged as_jlr
+```
 
 ### References & Licenses
 
@@ -67,6 +67,8 @@ Credits for the work done for synthesizing the audio samples from images of face
 For licenses, citations, and acknowledgements, please refer to the links included below:
 * [https://github.com/Rudrabha/Lip2Wav#license-and-citation](https://github.com/Rudrabha/Lip2Wav#license-and-citation)
 * [https://github.com/Rudrabha/Lip2Wav#acknowledgements](https://github.com/Rudrabha/Lip2Wav#acknowledgements)
+
+
 
 ## Runing the Audio Player
 

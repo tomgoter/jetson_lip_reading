@@ -3,7 +3,6 @@ import numpy as np
 import sys, cv2, os, pickle, argparse, subprocess
 from tqdm import tqdm
 from glob import glob
-import sounddevice as sd
 
 class Generator(object):
     def __init__(self):
@@ -152,7 +151,7 @@ if __name__ == '__main__':
                 print(e)
                 continue
 
-            command = template.format(ss, vidpath + 'audio.wav', es, 
-                                    '{}{}_{}:{}.wav'.format(GTS_ROOT, vidname, ss, (es-ss)))
+            command = template.format(ss, vidpath + 'audio.wav', (es-ss), 
+                                    '{}{}_{}:{}.wav'.format(GTS_ROOT, vidname, ss, es))
 
             subprocess.call(command, shell=True)

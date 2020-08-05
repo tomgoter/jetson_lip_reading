@@ -22,6 +22,7 @@ total_stoi = 0
 total_estoi = 0
 
 for filename in tqdm(all_files):
+	print(filename)
 	gt_filename = gt_folder.format(os.path.basename(filename))
 	rate, deg = wavfile.read(filename)
 	rate, ref = wavfile.read(gt_filename)

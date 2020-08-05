@@ -49,10 +49,13 @@ All necessary code for speech/audio synthesis lives in `audio_synthesizer/`, inc
 
 The following docker commands can be used to create and run everything from the `audio_synthesizer/` folder:
 ```
-> docker build -t as_jlr -f Dockerfile.audiosynthesizer .         # to build the image                    
-> docker run -ti --name as1 -e HOST="10.0.0.47" --privileged \    # to start the container
+> docker build -t as_jlr -f Dockerfile.audiosynthesizer .         # to build the image     
+
+# to start the docker container               
+> docker run -ti --name as1 -e HOST="10.0.0.47" --privileged \    
 	-e CHECKPOINT="weights/<path-to-weights>" \
-	-e PRESET="synthesizer/presets/<preset-name>.json" as_jlr     
+	-e PRESET="synthesizer/presets/<preset-name>.json" as_jlr    
+
 > docker container stop as1 && docker container rm as1            # to stop & remove container
 ```
 
@@ -71,7 +74,6 @@ For licenses, citations, and acknowledgements, please refer to the links include
 * [https://github.com/Rudrabha/Lip2Wav#acknowledgements](https://github.com/Rudrabha/Lip2Wav#acknowledgements)
 
 
-
 ## Runing the Audio Player
 
 ### Running the Container
@@ -79,13 +81,16 @@ For licenses, citations, and acknowledgements, please refer to the links include
 All necessary code for playing the synthesized speech/audio lives in `audio_synthesizer/`, including the Dockerfile used to construct this container. 
 
 ```
-> docker build -t ap_jlr -f Dockerfile.audioplayer .                                        # to build the image
-> docker run -ti --name ap1 -e SUB_HOST="10.0.0.47" \                                       # to start the container 
+> docker build -t ap_jlr -f Dockerfile.audioplayer .    # to build the image
+
+# to start the docker container
+> docker run -ti --name ap1 -e SUB_HOST="10.0.0.47" \
     --device /dev/snd --privileged \
     -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
     -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
     -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \
     --group-add $(getent group audio | cut -d: -f3) \
     ap_jlr
-> docker container stop ap1 && docker container rm ap1                                      # to stop & remove container
+
+> docker container stop ap1 && docker container rm ap1   # to stop & remove container
 ```

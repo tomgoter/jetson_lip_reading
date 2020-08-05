@@ -9,13 +9,6 @@ RUN apt-get install -y python3-pyaudio
 RUN apt-get install -y python3-scipy
 RUN pip3 install scipy paho-mqtt numpy
 
-# Additional dependencies if using playsound
-# RUN pip3 install playsound
-# RUN apt-get install -y python3-gi gstreamer-1.0
-# RUN ln -s /audio_player/startup.sh / # backwards compat
-# RUN chmod 777 /audio_player/startup.sh
-# ENTRYPOINT ["/audio_player/startup.sh"]
-
 RUN mkdir audio_player
 RUN cd /audio_player
 WORKDIR /audio_player
@@ -27,4 +20,4 @@ ENV SUB_PORT 1883
 ENV SUB_TOPIC "jetson/audio"
 
 # Run Audio Player Script
-CMD python3 audio_player_pyaudio.py --sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC
+CMD python3 audio_player.py --sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC

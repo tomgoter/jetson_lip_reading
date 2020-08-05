@@ -52,14 +52,14 @@ The following docker commands can be used to create and run everything from the 
 > docker build -t as_jlr -f Dockerfile.audiosynthesizer .         # to build the image     
 
 # to start the docker container               
-> docker run -ti --name as1 -e HOST="10.0.0.47" --privileged \    
+> docker run -ti --name as1 -e HOST="10.0.0.47" --privileged \
 	-e CHECKPOINT="weights/<path-to-weights>" \
 	-e PRESET="synthesizer/presets/<preset-name>.json" as_jlr    
 
 > docker container stop as1 && docker container rm as1            # to stop & remove container
 ```
 
-Be sure that the you've included the presets you're interested in using in the folder `audio_synthesizer/synthesizer/presets/` and the weights you're interested in using in `audio_synthesizer/weights/` prior to building the container to ensure they will be available at container runtime. Sample weights for the chemistry lecturer can be found on Google Drive [here](https://drive.google.com/drive/folders/17NGz5Tp0wrLGV0Ub6pz_KMfCvo00O4eG?usp=sharing). An example of running the docker container with this sample chemistry lecturer can be run as follows:
+Be sure that the you've included the presets you're interested in using in the folder `audio_synthesizer/synthesizer/presets/` and the weights you're interested in using in `audio_synthesizer/weights/` prior to building the container to ensure they will be available at container runtime. Sample weights for the chemistry lecturer can be found on Google Drive [here](https://drive.google.com/drive/folders/17NGz5Tp0wrLGV0Ub6pz_KMfCvo00O4eG?usp=sharing). Presets for the chem lecturer are included in `synthesizer/presets/chem.json` An example of running the docker container with this sample chemistry lecturer can be run as follows:
 
 ```
 > docker run -ti --name as1 -e HOST="10.0.0.47" -e CHECKPOINT="weights/chem/tacotron_model.ckpt-159000" -e PRESET="synthesizer/presets/chem.json" --privileged as_jlr

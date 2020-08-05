@@ -7,24 +7,11 @@ import argparse
 
 import numpy as np
 
-from playsound import playsound
-
 import io
 from scipy.io import wavfile
 
 import pyaudio
 import wave
-
-# https://stackoverflow.com/questions/52369925/creating-wav-file-from-bytes
-#import io
-#import soundfile as sf
-
-# https://stackoverflow.com/questions/43941716/how-to-play-mp3-from-bytes
-
-#from pydub import AudioSegment
-#from pydub.playback import play
-
-#from pygame import mixer, time
 
 ##############
 # Parameters #
@@ -96,51 +83,10 @@ client.connect(args.sub_mqtt_host, args.sub_mqtt_port)
 client.loop_start()
 client.subscribe(args.sub_topic, args.sub_qos)
 
-#mixer.pre_init(44100, -16, 2, 2048)
-#mixer.init()
-
 def save_wav(byte_data, rate, wav_num):
    outfile = '{}{}.wav'.format("./tmp/", wav_num)
    wavfile.write(outfile, rate, byte_data.astype(np.int16))
    return outfile
-
-def process_wav_bytes(wav_bytes, wav_num):
-   rate, data = wavfile.read(io.BytesIO(wav_bytes))
-   
-   # saving the wav file and playing -- works great, just theoretically slower
-   outfile = save_wav(data, rate, wav_num)
-   playsound(outfile)
-      
-
-   '''
-   # pydub -- had issues with ffprobe errors
-   song = AudioSegment.from_file(io.BytesIO(wav_bytes), format="wav")
-   play(song)
-   '''
-
-   '''
-   # pygame -- sounds like crap...
-   sound = mixer.Sound(wav_bytes)
-   audio = sound.play()
-   while audio.get_busy():
-      time.Clock().tick(10)
-   '''
-
-   '''
-   # soundfile -- can't get import to work
-   data, samplerate = sf.read(io.BytesIO(wav_bytes))
-   '''
-
-
-'''
-# Wait for messages until disconnected by system interrupt
-wav_num = 0
-while True:
-   if (wav_bytes_queue.qsize() > 0):
-      # case: queuing wav bytes
-      #process_wav_bytes(wav_bytes_queue.get(block=True), wav_num)
-      wav_num += 1
-'''
 
 # https://stackoverflow.com/questions/17657103/how-to-play-wav-file-in-python/17657304#17657304
 def pyaudio_play_wav(wav_file_name):
@@ -173,7 +119,6 @@ def process_wav_bytes():
       try:
          if (wav_files_queue.qsize() > 0):
             # case: queuing file paths to saved wav files
-            #playsound(wav_files_queue.get(block=True))
             pyaudio_play_wav(wav_files_queue.get(block=True))
       except KeyboardInterrupt:
          exit(0)

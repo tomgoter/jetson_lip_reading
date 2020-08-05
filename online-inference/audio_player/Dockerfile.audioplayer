@@ -9,27 +9,17 @@ RUN apt-get install python3-pyaudio paho-mqtt numpy
 RUN apt-get install -y python3-scipy
 RUN pip3 install scipy
 
-
+# Additional dependencies if using playsound
 # RUN pip3 install playsound
-
-
-RUN mkdir audio_player
-RUN cd /audio_player
-WORKDIR /audio_player
-ADD ./ /audio_player/
-
-
 # RUN apt-get install -y python3-gi gstreamer-1.0
 # RUN ln -s /audio_player/startup.sh / # backwards compat
 # RUN chmod 777 /audio_player/startup.sh
 # ENTRYPOINT ["/audio_player/startup.sh"]
 
-
-# RUN pip3 install soundfile
-# RUN pip3 install pydub
-# RUN pip3 install ffmpeg-python
-# RUN pip3 install ffprobe
-# RUN pip3 install pygame
+RUN mkdir audio_player
+RUN cd /audio_player
+WORKDIR /audio_player
+ADD ./ /audio_player/
 
 ENV QOS 2
 ENV SUB_HOST "10.0.0.47"
@@ -37,16 +27,4 @@ ENV SUB_PORT 1883
 ENV SUB_TOPIC "jetson/audio"
 
 # Run Audio Player Script
-# CMD python3 audio_player.py --sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC
-
-
-# docker run -ti --name ap1 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/Dataset/mini_sample/test_results/wavs/YouTube-chem-preproc_ffd_cpu-based-inf/:/wavs/ --device /dev/snd ubuntu bash
-
-
-# docker run -it --name "speaker" \
-#     --device /dev/snd --privileged \
-#     -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
-#     -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
-#     -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \
-#     --group-add $(getent group audio | cut -d: -f3) \
-#    ubuntu:16.04 /bin/bash
+CMD python3 audio_player_pyaudio.py --sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC

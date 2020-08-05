@@ -8,9 +8,9 @@ All necessary code for face detection lives in `face_detector/`, including the D
 
 The following docker commands can be used to create and run everything from the `face_detector/` folder:
 ```
-> docker build -t fd_jlr -f Dockerfile.facedetector .                           # to build the image
-> docker run -ti --name fd1 -e DISPLAY=$DISPLAY -e QOS=2 --privileged fd_jlr    # to start the container
-> docker container stop fd1 && docker container rm fd1                          # to stop & remove container
+> docker build -t fd_jlr -f Dockerfile.facedetector .                                      # to build the image
+> docker run -ti --name fd1 -e DISPLAY=$DISPLAY -e HOST="10.0.0.47" --privileged fd_jlr    # to start the container
+> docker container stop fd1 && docker container rm fd1                                     # to stop & remove container
 ```
 
 Running the docker container will start up the camera at video input 1 and face detection model and will read in images and crop out the first identified face in each frame. These faces will then be published to the topic specified in the Dockerfile. 
@@ -49,9 +49,11 @@ All necessary code for speech/audio synthesis lives in `audio_synthesizer/`, inc
 
 The following docker commands can be used to create and run everything from the `audio_synthesizer/` folder:
 ```
-> docker build -t as_jlr -f Dockerfile.audiosynthesizer .                       # to build the image                    
-> docker run -ti --name as1 -e HOST="10.0.0.47" -e CHECKPOINT="weights/<path-to-weights>" -e PRESET="synthesizer/presets/<preset-name>.json" --privileged as_jlr     # to start the container
-> docker container stop as1 && docker container rm as1                          # to stop & remove container
+> docker build -t as_jlr -f Dockerfile.audiosynthesizer .         # to build the image                    
+> docker run -ti --name as1 -e HOST="10.0.0.47" --privileged \    # to start the container
+	-e CHECKPOINT="weights/<path-to-weights>" \
+	-e PRESET="synthesizer/presets/<preset-name>.json" as_jlr     
+> docker container stop as1 && docker container rm as1            # to stop & remove container
 ```
 
 Be sure that the you've included the presets you're interested in using in the folder `audio_synthesizer/synthesizer/presets/` and the weights you're interested in using in `audio_synthesizer/weights/` prior to building the container to ensure they will be available at container runtime. Sample weights for the chemistry lecturer can be found on Google Drive [here](https://drive.google.com/drive/folders/17NGz5Tp0wrLGV0Ub6pz_KMfCvo00O4eG?usp=sharing). An example of running the docker container with this sample chemistry lecturer can be run as follows:
@@ -77,9 +79,13 @@ For licenses, citations, and acknowledgements, please refer to the links include
 All necessary code for playing the synthesized speech/audio lives in `audio_synthesizer/`, including the Dockerfile used to construct this container. 
 
 ```
-> docker build -t ap_jlr -f Dockerfile.audiosynthesizer .                                  # to build the image
-> docker run -ti --name ap1 -e SUB_HOST="10.0.0.47" --privileged --device /dev/snd ap_jlr  # to start the container  
-> docker container stop ap1 && docker container rm ap1                                     # to stop & remove container
+> docker build -t ap_jlr -f Dockerfile.audioplayer .                                        # to build the image
+> docker run -ti --name ap1 -e SUB_HOST="10.0.0.47" \                                       # to start the container 
+    --device /dev/snd --privileged \
+    -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
+    -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
+    -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \
+    --group-add $(getent group audio | cut -d: -f3) \
+    ap_jlr
+> docker container stop ap1 && docker container rm ap1                                      # to stop & remove container
 ```
-
- python3 audio_player.py "jetson/audio-receiver" "10.0.0.47" 1883 2 "jetson/audio"

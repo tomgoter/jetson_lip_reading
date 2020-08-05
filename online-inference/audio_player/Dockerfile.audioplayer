@@ -32,3 +32,15 @@ ENV SUB_TOPIC "jetson/audio"
 
 # Run Audio Player Script
 # CMD python3 audio_player.py --sub_mqtt_host $SUB_HOST --sub_mqtt_port $SUB_PORT --sub_qos $QOS --sub_topic $SUB_TOPIC
+
+
+docker run -ti --name ap1 -v ~/repos/jetson_lip_reading/online-inference/audio_synthesizer/Dataset/mini_sample/test_results/wavs/YouTube-chem-preproc_ffd_cpu-based-inf/:/wavs/ --device /dev/snd ubuntu bash
+
+
+docker run -it --name "speaker" \
+    --device /dev/snd --privileged \
+    -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
+    -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
+    -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \
+    --group-add $(getent group audio | cut -d: -f3) \
+    ubuntu:16.04 /bin/bash

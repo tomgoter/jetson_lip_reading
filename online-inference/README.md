@@ -1,5 +1,19 @@
 # Online Inference
 
+This folder contains all of the code required to run Lip Reading in an online scenario on the Jetson TX2. This component captures the online inference portion of the Jetson Lip Reading project for UCB MIDS W251 Section 3 course, authored by Diana Iftimie, Tom Goter, & Noah Pflaum. This work is inspired by the work done for the Lip2Wav project that this project focuses on exploring and expanding.
+
+This lip reading pipeline is a dockerized pipeline that comes in three key parts that are all connected via MQTT:
+
+ * Face Detection (which can additional be mimicked with the Fake Face Detector)
+ * Audio Synthesis (the core component of doing the Lip Reading task)
+ * Audio Playback (which enables playing synthesized audio on the Jetson)
+
+The three components are outlined in the diagram below:
+[PipelineDiagram](./PipelineDiagram.png)
+
+Each remaining section of this README will go into the detailed information for each container.
+
+
 ## Face Detector
 
 ### Running the Container
@@ -94,3 +108,5 @@ All necessary code for playing the synthesized speech/audio lives in `audio_synt
 
 > docker container stop ap1 && docker container rm ap1   # to stop & remove container
 ```
+
+Be sure that your Jetson TX2 device either has a speaker connected to it or has sound forwarding via a remote desktop software such as NoMachine to hear the audio playback. If at any point in time you have difficulties getting audio to play, be sure to leverage the `alsa` and `pulseaudio` libraries and try running `aplay /usr/share/sounds/alsa/Front_Center.wav` to help with troubelshooting.

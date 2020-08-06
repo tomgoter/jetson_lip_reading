@@ -1,4 +1,4 @@
-# Online Inference
+# Jetson TX2 Online Inference
 
 This folder contains all of the code required to run Lip Reading in an online scenario on the Jetson TX2. This component captures the online inference portion of the Jetson Lip Reading project for UCB MIDS W251 Section 3 course, authored by Diana Iftimie, Tom Goter, & Noah Pflaum. This work is inspired by the work done for the Lip2Wav project that this project focuses on exploring and expanding.
 
@@ -9,7 +9,7 @@ This lip reading pipeline is a dockerized pipeline that comes in three key parts
  * Audio Playback (which enables playing synthesized audio on the Jetson)
 
 The three components are outlined in the diagram below:
-[PipelineDiagram](./PipelineDiagram.png)
+![PipelineDiagram](./PipelineDiagram.png)
 
 Each remaining section of this README will go into the detailed information for each container.
 
